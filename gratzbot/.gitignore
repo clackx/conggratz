@@ -1,0 +1,7 @@
+__pycache__/
+.idea/
+
+*.sqlite
+
+config.py
+gratzbot.log
