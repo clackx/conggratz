@@ -343,7 +343,7 @@ def get_flag(country, flagonly=False):
     """ get country flag emoji """
     emojis = get_translation('flags', country.upper())
     emores = get_emoji_chars(emojis)
-    if flagonly:
+    if flagonly or country == 'CG':
         return emores
     return f'{emores} {country}'
 
