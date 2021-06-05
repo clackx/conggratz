@@ -125,7 +125,7 @@ def get_universal(utypename, wdentities, locale):
     Every entity from second part is included in result_dict and db store """
     elogger.enter(f'----- get:{utypename} of {str(wdentities)[:100]}  entities in {locale}')
     full_dict = dict([(i, {}) for i in wdentities])
-    result_dict = dict([(i, (locale, None)) for i in wdentities])
+    result_dict = dict([(i, (None, None)) for i in wdentities])
 
     unidata = maindb.get_universal(utypename, wdentities)
 
@@ -148,7 +148,7 @@ def get_universal(utypename, wdentities, locale):
 
     entities_to_request = []
     for wdentity in wdentities:
-        if result_dict[wdentity] == (locale, None):
+        if result_dict[wdentity] == (None, None):
             entities_to_request.append(wdentity)
 
     if len(entities_to_request):
