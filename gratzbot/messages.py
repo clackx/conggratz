@@ -9,7 +9,7 @@ MESSAGES = {
         {'ru': 'родились',
          'be': 'нарадзіліся',
          'uk': 'народилися',
-         'kk': 'дүниеге келді',
+         'kk': 'туғандар',
          'en': 'were born',
          'de': 'wurden geboren',
          'es': 'nació',
@@ -275,6 +275,18 @@ MESSAGES = {
          'ko': '메인 메뉴',
          'ja': 'メインメニュー'
          },
+    'about':
+        {'ru': 'Про',
+         'be': 'Пра',
+         'uk': 'Про',
+         'kk': 'Туралы',
+         'de': 'Über',
+         'es': 'Sobre',
+         'fr': 'À propos',
+         'zh': '关于',
+         'ko': '약',
+         'ja': '約'
+         },
     'edf':
         {'en': 'Enter a date in the format',
          'ru': 'Введите дату в формате',
@@ -288,19 +300,72 @@ MESSAGES = {
          'ko': '형식으로 날짜를 입력하십시오',
          'ja': '形式で日付を入力します'
          },
+    'review':
+        {'ru': 'Отзыв',
+         'be': 'Агляд',
+         'uk': 'Огляд',
+         'kk': 'Шолу',
+         'de': 'Rezension',
+         'es': 'Revisar',
+         'fr': 'Revoir',
+         'zh': '审查',
+         'ko': '리뷰',
+         'ja': 'レビュー'
+         },
+    'grateful':
+        {'en': 'I would be grateful for honest feedback',
+         'ru': 'Буду благодарен за честный отзыв',
+         'be': 'Буду ўдзячны за сумленны агляд',
+         'uk': 'Буду вдячний за чесний огляд.',
+         'kk': 'Мен шынайы шолуға ризашылығымды білдіремін',
+         'de': 'Ich wäre dankbar für ehrliches Feedback',
+         'es': 'Agradecería una revisión honesta',
+         'fr': 'Je serais reconnaissant pour vos commentaires honnêtes',
+         'zh': '真诚的反馈我将不胜感激',
+         'ko': '솔직한 피드백에 감사드립니다',
+         'ja': '正直なフィードバックをいただければ幸いです'
+         },
     'greetz':
         {'en': "Greetz!\n Every day I can tell you about people who have made significant contributions to their field "
                "of activity.\n If you add someone to your favorites, I will notify you on his birthday eve so that you "
                "can remember his work and thank him with your attention.\n Over time, I will learn to carefully "
                "recommend you other people in your circle of interests that you may have forgotten or do not know "
                "about.\n If you find a mistake in translation, oddity in work or something caused your negative "
-               "feelings, just mail about it.\n Hope for fruitful cooperation!",
+               "feelings, just write to Review about it.\n Hope for fruitful cooperation!",
          'ru': "Привет!\n Я могу рассказывать тебе каждый день о людях, которые внесли значительный вклад в свою "
                "область деятельности.\n Если ты добавишь кого-то в избранное, я буду оповещать тебя накануне дня его "
                "рождения, чтобы ты смог вспомнить о его трудах и отблагодарить своим вниманием.\n Со временем я "
                "научусь осторожно советовать тебе других людей твоего круга интересов, о которых ты мог забыть или "
                "не знаешь.\n Если ты нашёл ошибку в переводе, странность в работе или что-то вызвало твои негативные "
-               "чувства, просто напиши об этом на почту.\n Надеюсь на плодотворное сотрудничество! "
+               "чувства, просто напиши об этом в Отзыв.\n Надеюсь на плодотворное сотрудничество! ",
+         'ua': "Привіт! \n Я можу розповідати тобі кожен день про людей, які внесли значний вклад в свою область "
+               "діяльності. \n Якщо ти додаси когось в обране, я буду повідомляти тебе напередодні дня його "
+               "народження, щоб ти зміг згадати про його працях і віддячити своєю увагою. \n З часом я навчуся "
+               "обережно радити тобі інших людей твого кола інтересів, про які ти міг забути або не знаєш. \n Якщо ти "
+               "знайшов помилку в перекладі, дивина в роботі або щось викликало твої негативні почуття, просто напиши "
+               "про це в Відгук. \n Сподіваюся на плідну співпрацю!",
+         'be': "Прывітанне! \n Я магу расказваць табе кожны дзень пра людзей, якія ўнеслі значны ўклад у сваю "
+               "вобласць дзейнасці. \n Калі ты дадасі кагосьці ў выбранае, я буду апавяшчаць цябе напярэдадні дня яго "
+               "нараджэння, каб ты змог успомніць пра яго працах і аддзячыць сваёй увагай. \n З часам я навучуся "
+               "асцярожна раіць табе іншых людзей твайго круга інтарэсаў, пра якія ты мог забыць ці не ведаеш. \n "
+               "Калі ты знайшоў памылку ў перакладзе, недарэчнасць у працы ці нешта выклікала твае негатыўныя "
+               "пачуцці, проста напішы пра гэта ў Водгук. \n Спадзяюся на плённае супрацоўніцтва!",
+         },
+    'rugreetz':
+        {'ru': ' Если твой язык русский, отправь ru или RU.\n Также язык можно выбрать в нстройках /set.\n'
+               ' Главное меню вызывается по команде /menu, помощь /help',
+         'en': ' If Russian is not your native language, send en or EN\n Аlso languages can be selected in '
+               'the settings /set.\n The main menu is called by the command /menu, help by /help'
+        },
+    'helptext':
+        {'ru': 'В режиме просмотра дня рождений навигация осуществляется по кнопкам FW&gt;&gt; (вперёд) или &lt;&lt;RW'
+               ' (назад).\n Если вы что-то вводили с клавиатуры, телеграм скроет (свернёт) кнопки. Вернуть их можно,'
+               ' нажав на иконку с четырьмя квадратиками, типа такого [: :]\n Если что-то осталось непонятным, можешь'
+               ' задать вопрос мне в личку @clackx',
+         'en': ' In the birthday view mode, you can navigate with buttons FW&gt;&gt; (forward) или &lt;&lt;RW ('
+               'backward).\n If you entered something from the keyboard, telegram will hide (minimize) the buttons, '
+               'you can return them by clicking on the icon with four squares that looks like [: :]\n If something '
+               'remains unclear, you can ask me a question in PM @clackx'
          },
     'flags':
         {'RU': 'U+1F1F7 U+1F1FA',
