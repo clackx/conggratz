@@ -78,18 +78,22 @@ def settings(chat_id, rtype, message=''):
             text = get_translation('notifications', locale) + ': ' + get_translation('OFF', locale)
             user.set_notifications(chat_id, 0)
 
-    elif rtype == 4:
+    elif rtype == 4 or rtype == 42:
         text = get_translation('main menu', locale)
         btn_list = ((get_translation('today', locale), get_translation('tomorrow', locale)),
                     (get_translation('yesterday', locale), get_translation('another day', locale)),
-                    (get_translation('config', locale), get_translation('information', locale)))
-
+                    (get_translation('config', locale), get_translation('about', locale)))
     else:
         text = get_acc_info(chat_id)
 
+    if rtype == 42:
+        user.update_param(chat_id, 'session', {'state': 4})
+        text = get_translation('grateful', locale)
+
     if btn_list == 'menu':
         btn_list = ((get_translation('language', locale)+' (Lang)', get_translation('keyboard', locale)),
-                    (get_translation('notifications', locale), get_translation('my favorites', locale)))
+                    (get_translation('notifications', locale), get_translation('review', locale)),
+                    (get_translation('my favorites', locale), get_translation('main menu', locale)))
 
     if btn_list:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True,

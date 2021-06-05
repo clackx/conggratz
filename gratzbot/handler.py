@@ -125,6 +125,12 @@ def docall(message):
     sender.send_likees(message.chat.id)
 
 
+@bot.message_handler(regexp='|'.join(get_values('review')))
+def docall(message):
+    elogger.preinfo(f'<< {message.chat.id} SRV REVIEW')
+    settings.settings(message.chat.id, 42, 0)
+
+
 @bot.message_handler(regexp='fw.*')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV forward FW>>')
