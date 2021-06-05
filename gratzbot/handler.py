@@ -30,6 +30,12 @@ def docall(message):
     settings.settings(message.chat.id, 0)
 
 
+@bot.message_handler(commands=["help"])
+def docall(message):
+    elogger.preinfo(f'<< {message.chat.id} SRV command /help')
+    sender.helps(message.chat.id)
+
+
 @bot.message_handler(commands=["day"])
 @bot.message_handler(regexp='|'.join(get_values('today')))
 def docall(message):
@@ -158,7 +164,7 @@ def docall(message):
     if message.text == chr(12951):
         sender.send_message(message.chat.id, chr(129395))
     else:
-        sender.send_info(message.chat.id, message.text)
+        sender.incoming(message.chat.id, message.text)
 
 
 # inline keyboard buttons handler
@@ -168,4 +174,4 @@ def docall(query):
     button = query.data[:4]
     wdid = query.data[5:]
     if button == 'like':
-        sender.save_liked(query.message.chat.id, wdid)
+        sender.save_liked(query.message.chat.id, wdid, query.id)

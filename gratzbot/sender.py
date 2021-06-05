@@ -27,6 +27,17 @@ def send_gratz_shift(chat_id, direction):
         send_gratz_brief(chat_id, bday, offset)
 
 
+def incoming(chat_id, incoming_message):
+    state = user.load_param(chat_id, 'session').get('state')
+    if state == 4:
+        # review(chat_id, incoming_message)
+        elogger.preinfo(f':: {chat_id} RVW {incoming_message}')
+        send_message(chat_id, message='GREAT THANX!')
+        user.update_param(chat_id, 'session', {'state': 0})
+    else:
+        send_info(chat_id, incoming_message)
+
+
 def send_info(chat_id, incoming_message):
     """" sends personality info message in three steps:
     because getter.get_info takes several seconds to request page,
@@ -61,7 +72,7 @@ def send_info(chat_id, incoming_message):
                    'Spend {}s to request'.format((endtime - starttime).total_seconds()))
 
 
-def save_liked(chat_id, wdid):
+def save_liked(chat_id, wdid, query_id):
     """ informs if a fav entity has been added to db or already exist """
     elogger.info(f'<< {chat_id} like {wdid}')
     locale = user.load_param(chat_id, 'locale').get('primary')
@@ -69,6 +80,10 @@ def save_liked(chat_id, wdid):
         text = get_translation('added to fav', locale)
     else:
         text = get_translation('already in fav', locale)
+    try:
+        bot.answer_callback_query(query_id)
+    except Exception as e:
+        print(e)
     send_message(chat_id, text)
     elogger.exiter('[OK]', text)
 
@@ -102,6 +117,21 @@ def greetz(chat_id):
     text = get_translation('greetz', locale)
     link = '<a href="{}">&#8205;</a>'.format(randpicture('greetz'))
     send_message(chat_id, f'{text} {link}')
+    prehelp(chat_id, locale)
+
+
+def helps(chat_id):
+    locale = user.load_param(chat_id, 'locale').get('primary')
+    text = get_translation('helptext', locale)
+    send_message(chat_id, text)
+    prehelp(chat_id, locale)
+
+
+def prehelp(chat_id, locale):
+    if locale != 'ru':
+        send_message(chat_id, get_translation('rugreetz', 'ru'))
+    else:
+        send_message(chat_id, get_translation('rugreetz', 'en'))
 
 
 def send_message(chat_id, message, markup=''):
