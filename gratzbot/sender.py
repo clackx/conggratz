@@ -49,13 +49,13 @@ def send_info(chat_id, incoming_message):
         edit_message(chat_id, message_id, text + ' ' + link, markup=keyboard)
 
         # coming soon
-        # props, props_dict = getter.find_properties(wdid, locale)
-        # for prop in props_dict:
-        #     text = f'{props_dict[prop][0].capitalize()}:  ({prop})\n'
-        #     for value in props_dict[prop][1:]:
-        #         text += f'• {value} \n'
-        #     # придётся избавиться от этой красоты
-        #     send(chat_id, text)
+        props, props_dict = getter.find_properties(wdid, locale)
+        for prop in props_dict:
+            text = f'{props_dict[prop][0].capitalize()}:\n'  # f'({prop})\n'
+            for value in props_dict[prop][1:]:
+                text += f'• {value} \n'
+            # придётся избавиться от этой красоты
+            send_message(chat_id, text)
     endtime = datetime.datetime.now()
     elogger.exiter(f'[OK] {chat_id} send_info {wdid}',
                    'Spend {}s to request'.format((endtime - starttime).total_seconds()))
