@@ -117,6 +117,10 @@ def info(incoming_str):
         cascader('├──┮ ' + result_str, LEVELUP)
 
 
+def preinfo(incoming_str):
+    logger.info('╟─╼ ' + incoming_str)
+
+
 def cascader(incoming_str, level):
     result_str = get_leading_braces() + incoming_str[:120] + Colors.ENDC
     thread_id = get_thread()
