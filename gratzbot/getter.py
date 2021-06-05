@@ -218,10 +218,12 @@ def get_shift_params(userid, direction):
     s = user.load_param(userid, 'session')
     bday = s.get('bday')
     offset = s.get('offset') + direction * int(step)
+    is_rested = False
     if offset < 0:
         offset = 0
+        is_rested = True
     message_id = s.get('message_id')
-    return message_id, bday, offset
+    return message_id, bday, offset, is_rested
 
 
 def get_day_plus(userid, bday, offset):

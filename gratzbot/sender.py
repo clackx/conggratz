@@ -21,9 +21,10 @@ def send_gratz_brief(chat_id, bday, offset=0):
 
 def send_gratz_shift(chat_id, direction):
     """ deletes the previous brief and sends a new one with calculated offset """
-    prev_message_id, bday, offset = getter.get_shift_params(chat_id, direction)
-    delete_message(chat_id, prev_message_id)
-    send_gratz_brief(chat_id, bday, offset)
+    prev_message_id, bday, offset, is_rested = getter.get_shift_params(chat_id, direction)
+    if not is_rested:
+        delete_message(chat_id, prev_message_id)
+        send_gratz_brief(chat_id, bday, offset)
 
 
 def send_info(chat_id, incoming_message):
@@ -132,11 +133,3 @@ def delete_message(chat_id, message_id):
         elogger.warn(f'! TELE API: {e}')
     except requests.exceptions.ConnectionError as e:
         elogger.warn(f'! REQUESTS: {e}')
-
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-
-
-***REMOVED***
