@@ -46,6 +46,7 @@ def request_wiki_info(namelink, locale):
         pages = r['query']['pages']
         info = pages[list(pages)[0]]['extract']
         info = info.replace(chr(769), '')  # accent mark remove
+        info = '\n\n '.join(info.split('\n'))
         info = info.rstrip()
         return info
 
@@ -207,7 +208,9 @@ def get_info(wdid, locale):
     key, namelink = get_universal('sitelinks', [wdid], locale)[wdid]
     info = request_wiki_info(namelink, key)
     tags = get_tags(wdid, locale)
-    text = f'<i>{tags}</i>\n{info}'
+    text = f'<i>{tags}</i>\n\n{info}'
+    if len(text) > 3896:
+        text = text[:3896] + '...'
     keyboard = get_inline_keyboard(wdid, namelink, key)
     return text, keyboard
 
