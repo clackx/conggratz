@@ -136,8 +136,13 @@ class Mdb:
 
     def set_user(self, userid, settings):
         elogger.debug(f'set_user {userid}')
-        queries = (f"INSERT OR IGNORE INTO users VALUES ({userid}, '1', '{settings}')",
+        queries = (f"INSERT OR IGNORE INTO users VALUES ({userid}, '1', '{settings}', '')",
                    f"UPDATE users SET settings='{settings}' WHERE userid={userid}")
+        return self.try_commit(queries)
+
+    def ident_user(self, userid, settings):
+        elogger.debug(f'ident_user {userid}')
+        queries = (f"UPDATE users SET identity='{settings}' WHERE userid={userid}",)
         return self.try_commit(queries)
 
     def get_notication_requiring(self):

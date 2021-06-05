@@ -3,6 +3,7 @@ from misc import bot, birthday_from_offset
 import sender
 from messages import get_values
 import elogger
+import user
 
 
 """ command section """
@@ -11,6 +12,7 @@ import elogger
 @bot.message_handler(commands=["start"])
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV command /start')
+    user.start(message.from_user)
     sender.greetz(message.chat.id)
     settings.settings(message.chat.id, 4)
 
