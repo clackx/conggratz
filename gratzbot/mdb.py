@@ -56,7 +56,7 @@ class Mdb:
 
     def get_day_intro(self, bdate, offset, count):
         elogger.enter(f'^^ get_day_intro {bdate}, offset {offset}')
-        query = f'SELECT wdentity FROM people WHERE bdate="{bdate}" LIMIT {offset},{count}'
+        query = f'SELECT wdentity FROM people WHERE bdate="{bdate}" ORDER BY bklinks DESC LIMIT {offset}, {count}'
         return self.try_fetch(query, Mdb.ALL)
 
     def get_names(self, bday):
