@@ -1,6 +1,7 @@
 import telebot
 import requests
 import datetime
+from time import sleep
 import getter
 from misc import bot, randpicture
 import misc
@@ -141,6 +142,15 @@ def send_message(chat_id, message, markup=''):
                                       parse_mode='html', disable_notification=True).message_id
     except telebot.apihelper.ApiTelegramException as e:
         elogger.warn(f'! TELE API: {e}')
+        err_num_str = str(e)[60:63]
+        if err_num_str == '429':
+            sleep(3)
+            send_message(chat_id, message, markup)
+        elif err_num_str == '403':
+            elogger.preinfo(f'-- {chat_id} SRV user disabled')
+            user.set_notifications(chat_id, 0)
+        else:
+            print('Error', err_num_str)
     except requests.exceptions.ConnectionError as e:
         elogger.warn(f'! REQUESTS: {e}')
     return message_id
