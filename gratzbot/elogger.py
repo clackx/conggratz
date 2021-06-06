@@ -1,6 +1,7 @@
 import logging
 import threading
 from config import VERBOSE, LOGLEVEL, LOGTOFILE
+from echoer import echo
 
 logger = logging.getLogger('gratzbot')
 formatter = logging.Formatter('[%(asctime)s] %(thread)d  '
@@ -98,12 +99,14 @@ def exiter(incoming_str, result):
 
 
 def error(incoming_str):
+    echo('E ' + incoming_str)
     res_str = get_leading_braces() + Colors.Blink + Colors.Bold + Colors.LightRed + Colors.Reverse \
               + '!! ' + incoming_str + Colors.ENDC
     logger.error(res_str)
 
 
 def warn(incoming_str):
+    echo('W ' + incoming_str)
     res_str = get_leading_braces() + Colors.Reverse + Colors.Yellow \
               + '! ' + incoming_str + Colors.ENDC
     logger.warning(res_str)
@@ -118,6 +121,7 @@ def info(incoming_str):
 
 
 def preinfo(incoming_str):
+    echo('I ' + incoming_str)
     logger.info('╟─╼ ' + incoming_str)
 
 
