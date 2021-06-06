@@ -2,6 +2,8 @@ import telebot
 import cherrypy
 import config
 from misc import bot
+import user
+import json
 
 
 class WebhookServer(object):
@@ -17,6 +19,14 @@ class WebhookServer(object):
                 update = telebot.types.Update.de_json(json_string)
                 bot.process_new_updates([update])
                 return ''
+            elif realip == '62.105.129.22' or realip == '85.143.219.78':
+                json_data = json.loads(json_string)
+                action = json_data.get('action')
+                if action == 'reload':
+                    user.reload()
+                    return 'Flushed\n'
+                else:
+                    user.what()
             else:
                 raise cherrypy.HTTPError(403)
         else:

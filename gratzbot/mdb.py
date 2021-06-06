@@ -192,3 +192,11 @@ class Memdb:
 
     def close(self):
         self.connection.close()
+
+    def what(self):
+        data = self.cursor.execute(f"SELECT * from memble").fetchall()
+        return data
+
+    def reload(self):
+        self.cursor.execute(f"DELETE from memble")
+        self.connection.commit()

@@ -63,3 +63,16 @@ def set_notifications(user_id, tumbler):
 
 def add_to_fav(userid, wdid):
     return maindb.add_to_fav(userid, wdid)
+
+
+def what():
+    data = memdb.what()
+    if data:
+        for d in data:
+            print(d)
+    else:
+        print('none')
+
+
+def reload():
+    memdb.reload()
