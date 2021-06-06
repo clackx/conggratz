@@ -1,7 +1,6 @@
 import telebot
 import cherrypy
 import config
-import handler
 from misc import bot
 
 
@@ -13,11 +12,16 @@ class WebhookServer(object):
                 cherrypy.request.headers['content-type'] == 'application/json':
             length = int(cherrypy.request.headers['content-length'])
             json_string = cherrypy.request.body.read(length).decode("utf-8")
-            update = telebot.types.Update.de_json(json_string)
-            bot.process_new_updates([update])
-            return ''
+            realip = cherrypy.request.headers.get('X-Real-Ip', '')
+            if '91.108.6' in realip or '91.108.4' in realip or '149.154.160' in realip:
+                update = telebot.types.Update.de_json(json_string)
+                bot.process_new_updates([update])
+                return ''
+            else:
+                raise cherrypy.HTTPError(403)
         else:
-            raise cherrypy.HTTPError(403)
+            return "What?"
+            # raise cherrypy.HTTPError(403)
 
 
 cherrypy.config.update(config.cherrypy_conf)
