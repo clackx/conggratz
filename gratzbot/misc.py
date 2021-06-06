@@ -29,10 +29,10 @@ def get_wc_thumb(photo, width=420):
 
 def randpicture(rtype):
     if rtype == 'greetz':
-        names = ('greetz3.jpg', 'greetz4.jpg', 'greetz1.png')
+        names = ('greetz3.jpg', 'greetz4.jpg', 'greetz1.jpg')
     elif rtype == 'nophoto':
         names = ('nophoto1.jpg', 'nophoto2.jpg', 'nophoto3.jpg')
-    link = 'http://conggratz.ru/stati/' + random.choice(names)
+    link = 'https://conggratz.ru/stati/' + random.choice(names)
     return link
 
 
