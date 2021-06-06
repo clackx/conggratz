@@ -147,7 +147,7 @@ class Mdb:
 
     def get_notication_requiring(self):
         elogger.enter('get noti')
-        query = "SELECT userid, settings FROM users WHERE status=1"
+        query = "SELECT userid FROM users WHERE status=1"
         return self.try_fetch(query, Mdb.ALL)
 
     def set_notifications(self, userid, tumbler):
