@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 
@@ -29,6 +30,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('ru_RU');
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
@@ -37,6 +39,10 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  String apptitle = "Cong Gratz flutter app";
+  String born = " родились";
+  DateTime selectedDate = DateTime.now();
+
   @override
   Widget build(BuildContext context) {
     if (items.length == 0) {
@@ -44,7 +50,14 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     return new Scaffold(
       appBar: AppBar(
-        title: Text("Cong Gratz flutter app"),
+        title: Text(apptitle),
+        elevation: 15.0,
+        actions: [
+          IconButton(
+              icon: Icon(Icons.calendar_today_outlined),
+              onPressed: () => _selectDate(context)),
+          Icon(Icons.format_list_bulleted),
+        ],
       ),
       body: ListView.builder(
         itemCount: items.length + 1,
@@ -60,7 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
                   title: Text(items[index]['name']),
-                  subtitle: Text(items[index]['info']),
+                  subtitle: Text('${items[index]['info']}'),
                   trailing: Icon(Icons.arrow_forward),
                   onTap: () => openDetailed(items[index]),
                 )));
@@ -173,24 +186,38 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
   }
-}
 
-Future<List<Map<String, dynamic>>> dayRequest(int from, int to) async {
-  final now = new DateTime.now();
-  String nowaday = DateFormat('MM.dd').format(now);
-  Uri dataURL = Uri.parse(
-      'http://qrcat.ru:8081/json?bdate=$nowaday&limit=15&offset=$from');
-  http.Response response = await http.get(dataURL);
-  var jsonResponse = jsonDecode(response.body);
+  _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: selectedDate,
+        firstDate: DateTime(2021),
+        lastDate: DateTime(2022),
+        initialDatePickerMode: DatePickerMode.day);
+    if (picked != null && picked != selectedDate)
+      setState(() {
+        selectedDate = picked;
+        items = [];
+      });
+  }
 
-  return List.generate(to - from, (index) {
-    return {
-      'name': '${jsonResponse[index]['name']}',
-      'tags': jsonResponse[index]['tags'],
-      'photo': jsonResponse[index]['photo'],
-      'info': jsonResponse[index]['descr']
-    };
-  });
+  Future<List<Map<String, dynamic>>> dayRequest(int from, int to) async {
+    String nowaday = DateFormat('MM.dd').format(selectedDate);
+    apptitle = DateFormat('d MMMM', 'ru_RU').format(selectedDate) + born;
+    Uri dataURL = Uri.parse(
+        'http://qrcat.ru:8081/json?bdate=$nowaday&limit=15&offset=$from');
+    http.Response response = await http.get(dataURL);
+    var jsonResponse = jsonDecode(response.body);
+
+    return List.generate(to - from, (index) {
+      return {
+        'name': '${jsonResponse[index]['name']}',
+        'tags': jsonResponse[index]['tags'],
+        'photo': jsonResponse[index]['photo'],
+        'info': jsonResponse[index]['descr']
+      };
+    });
+  }
 }
 
 Future<String> getWikiPage(String name) async {
