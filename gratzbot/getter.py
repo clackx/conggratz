@@ -22,6 +22,8 @@ def please_request(url, params=''):
         r.raise_for_status()
         is_request_successful = True
         result = r.json()
+        if 'error' in result:
+            is_request_successful = False
         elogger.exiter(f'[OK] {r.status_code}', result)
     except requests.exceptions.HTTPError as e:
         elogger.error(f'!! Http Error: {e}')
