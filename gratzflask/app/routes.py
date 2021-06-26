@@ -18,12 +18,12 @@ def get_tags(wdentity, lang):
     tags = Tags.query.filter_by(people_entity=wdentity)
     tags_str = ''
     for tag in tags:
-        occu = Occupations.query.filter_by(occu_entity=tag.occupation_entity)
-        if occu.count():
-            occu = occu[0]
-            occu_descr = json.loads(occu[0].descr_cache).get(lang)
+        occu_data = Occupations.query.filter_by(occu_entity=tag.occupation_entity)
+        if occu_data.count():
+            descr_cache = occu_data[0].descr_cache
+            occu_descr = json.loads(descr_cache).get(lang)
             if not occu_descr:
-                occu_descr = json.loads(occu.descr_cache).get('en', f'? no en ?')
+                occu_descr = json.loads(descr_cache).get('en', f'? no en ?')
             occu_descr = occu_descr.replace(' ', '_').replace('/', '_').replace('-', '_')
             tags_str += f'#{occu_descr} '
         else:
@@ -39,10 +39,10 @@ def get_describe(wdentity, lang):
     occu_descr = '--nodata--'
     descr_data = Wdentities.query.filter_by(wdentity=wdentity)
     if descr_data.count():
-        descr = descr_data[0]
-        occu_descr = json.loads(descr_data[0].descr_cache).get(lang)
+        descr_cache = descr_data[0].descr_cache
+        occu_descr = json.loads(descr_cache).get(lang)
         if not occu_descr:
-            occu_descr = json.loads(descr.descr_cache).get('en', '--NO DATA--')
+            occu_descr = json.loads(descr_cache).get('en', '--NO DATA--')
     return occu_descr
 
 
