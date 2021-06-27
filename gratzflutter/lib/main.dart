@@ -72,9 +72,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: ListTile(
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                  leading: Text(
+                      '${items[index]['icon']}\n${items[index]['flag']}',
+                      style: TextStyle(fontSize: 24)),
                   title: Text(items[index]['name']),
                   subtitle: Text('${items[index]['info']}'),
-                  trailing: Icon(Icons.arrow_forward),
+                  // trailing: Icon(Icons.arrow_forward),
                   onTap: () => openDetailed(items[index]),
                 )));
           }
@@ -210,11 +213,26 @@ class _MyHomePageState extends State<MyHomePage> {
     var jsonResponse = jsonDecode(response.body);
 
     return List.generate(to - from, (index) {
+      List emoji = jsonResponse[index]['emoji'];
+      String icon = '⁉️';
+      if (emoji.length > 0) {
+        icon = emoji[0];
+        final blankspace = icon.indexOf(' ');
+        if (blankspace > 0) {
+          icon = icon.substring(0,blankspace);
+        }
+        final dashinidex = icon.indexOf('-');
+        if (dashinidex > 0) {
+          icon = icon.substring(0,dashinidex);
+        }
+      }
       return {
         'name': '${jsonResponse[index]['name']}',
         'tags': jsonResponse[index]['tags'],
         'photo': jsonResponse[index]['photo'],
-        'info': jsonResponse[index]['descr']
+        'info': jsonResponse[index]['descr'],
+        'flag': jsonResponse[index]['flag'],
+        'icon': icon
       };
     });
   }
