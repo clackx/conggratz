@@ -17,10 +17,12 @@ def get_tags(wdentity, lang):
     # generating tags list
     tags = Tags.query.filter_by(people_entity=wdentity).order_by(Tags._id)
     tags_str = ''
+    emoji_list = []
     for tag in tags:
         occu_data = Occupations.query.filter_by(occu_entity=tag.occupation_entity)
         if occu_data.count():
             descr_cache = occu_data[0].descr_cache
+            emoji_list.append(get_emoji_chars(occu_data[0].emoji))
             occu_descr = json.loads(descr_cache).get(lang)
             if not occu_descr:
                 occu_descr = json.loads(descr_cache).get('en', f'? no en ?')
@@ -32,7 +34,7 @@ def get_tags(wdentity, lang):
     if not tags_str:
         tags_str = '--notags--'
 
-    return tags_str
+    return tags_str, emoji_list
 
 
 def get_describe(wdentity, lang):
@@ -61,6 +63,17 @@ def get_wc_thumb(photo, width=420):
     return result
 
 
+def get_emoji_chars(emojis):
+    """ get emoji chars from unified hex notation """
+    emores = ''
+    if emojis:
+        for emoji in emojis.split():
+            emores += chr(int(emoji[2:], 16))
+    else:
+        emores += chr(128100)
+    return emores
+
+
 @app.route('/json')
 def jsss():
     bdate = request.args.get('bdate', '01.01')
@@ -85,10 +98,10 @@ def jsss():
         del item['links']
         del item['bdate']
         photo = get_wc_thumb(item['photo'])
-        tags = get_tags(item['wdentity'], 'ru')
+        tags, emoji = get_tags(item['wdentity'], 'ru')
         descr = get_describe(item['wdentity'], 'ru')
 
-        item.update({'tags': tags, 'name': name, 'photo': photo, 'descr': descr})
+        item.update({'tags': tags, 'name': name, 'photo': photo, 'descr': descr, 'emoji': emoji})
 
     # pp = pprint.PrettyPrinter(indent=4)
     # print (pp.pprint(list_d))
