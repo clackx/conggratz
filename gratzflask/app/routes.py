@@ -42,6 +42,17 @@ def get_describe(wdentity, lang):
     return occu_descr
 
 
+def get_flag(wdentity):
+    flag = '?'
+    descr_data = Wdentities.query.filter_by(wdentity=wdentity)
+    if descr_data.count():
+        flag = descr_data[0].flag
+    if flag == '?':
+        flag = 'U+1F5FA'
+    emoji_flag = get_emoji_chars(flag)
+    return emoji_flag
+
+
 def get_wc_thumb(photo, width=420):
     if not photo:
         return "https://conggratz.ru/stati/nophoto2.jpg"
@@ -120,8 +131,9 @@ def jsss():
         photo = get_wc_thumb(item['photo'])
         tags, emoji = get_tags(item['wdentity'], 'ru')
         descr = get_describe(item['wdentity'], 'ru')
+        flag = get_flag(item['wdentity'])
 
-        item.update({'tags': tags, 'name': name, 'photo': photo, 'descr': descr, 'emoji': emoji})
+        item.update({'tags': tags, 'name': name, 'photo': photo, 'descr': descr, 'emoji': emoji, 'flag': flag})
 
     # pp = pprint.PrettyPrinter(indent=4)
     # print (pp.pprint(list_d))

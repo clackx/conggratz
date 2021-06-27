@@ -28,3 +28,4 @@ class Tags(db.Model):
 class Wdentities(db.Model):
     wdentity = db.Column(db.String, primary_key=True)
     descr_cache = db.Column(db.String)
+    flag = db.Column(db.String)
