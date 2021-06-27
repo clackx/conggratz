@@ -15,7 +15,7 @@ def get_day():
 
 def get_tags(wdentity, lang):
     # generating tags list
-    tags = Tags.query.filter_by(people_entity=wdentity)
+    tags = Tags.query.filter_by(people_entity=wdentity).order_by(Tags._id)
     tags_str = ''
     for tag in tags:
         occu_data = Occupations.query.filter_by(occu_entity=tag.occupation_entity)

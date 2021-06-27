@@ -20,6 +20,7 @@ class Occupations(db.Model):
 
 
 class Tags(db.Model):
+    _id = db.Column(db.Integer)
     people_entity = db.Column(db.String, primary_key=True)
     occupation_entity = db.Column(db.String, primary_key=True)
 
