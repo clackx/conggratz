@@ -21,11 +21,8 @@ def get_tags(wdentity, lang):
     for tag in tags:
         occu_data = Occupations.query.filter_by(occu_entity=tag.occupation_entity)
         if occu_data.count():
-            descr_cache = occu_data[0].descr_cache
             emoji_list.append(get_emoji_chars(occu_data[0].emoji))
-            occu_descr = json.loads(descr_cache).get(lang)
-            if not occu_descr:
-                occu_descr = json.loads(descr_cache).get('en', f'? no en ?')
+            occu_descr = get_notional_value(occu_data[0].descr_cache, lang)
             occu_descr = occu_descr.replace(' ', '_').replace('/', '_').replace('-', '_')
             tags_str += f'#{occu_descr} '
         else:
@@ -41,10 +38,7 @@ def get_describe(wdentity, lang):
     occu_descr = '--nodata--'
     descr_data = Wdentities.query.filter_by(wdentity=wdentity)
     if descr_data.count():
-        descr_cache = descr_data[0].descr_cache
-        occu_descr = json.loads(descr_cache).get(lang)
-        if not occu_descr:
-            occu_descr = json.loads(descr_cache).get('en', '--NO DATA--')
+        occu_descr = get_notional_value(descr_data[0].descr_cache, lang)
     return occu_descr
 
 
@@ -72,6 +66,32 @@ def get_emoji_chars(emojis):
     else:
         emores += chr(128100)
     return emores
+
+
+def get_notional_value(data_str, locale):
+    """ Get *locale* key value from cached *data_dict*
+    If locale value is empty, get value of default 'en'
+    If default value is empty, get first non-empty """
+    data_dict = {}
+    try:
+        data_dict = json.loads(data_str)
+    except json.decoder.JSONDecodeError as e:
+        print('JSON decode error:', e)
+
+    (key, value) = (locale, '--nodata--')
+    if len(data_dict):
+        value = data_dict.get(key)
+        if not value:
+            key = 'en'
+            value = data_dict.get(key)
+            if not value:
+                for key in data_dict.keys():
+                    value = data_dict[key]
+                    if value:
+                        break
+                if not value:
+                    value = '-?nodata?-'
+    return value
 
 
 @app.route('/json')
