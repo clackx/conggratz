@@ -54,9 +54,12 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 15.0,
         actions: [
           IconButton(
-              icon: Icon(Icons.calendar_today_outlined),
+              icon: Image.asset('graphics/clndr2.png'),
               onPressed: () => _selectDate(context)),
-          Icon(Icons.format_list_bulleted),
+          IconButton(
+              icon: Image.asset('graphics/flag$langNext.png'),
+              onPressed: () => _selectNextLang()),
+          Image.asset('graphics/blank.png')
         ],
       ),
       body: ListView.builder(
@@ -75,9 +78,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   leading: Text(
                       '${items[index]['icon']}\n${items[index]['flag']}',
                       style: TextStyle(fontSize: 24)),
-                  title: Text(items[index]['name']),
-                  subtitle: Text('${items[index]['info']}'),
-                  // trailing: Icon(Icons.arrow_forward),
+                  title: Text(items[index]['name'][langChosen]),
+                  subtitle: Text('${items[index]['info'][langChosen]}'),
+                  trailing: _getBklAsset(items[index]['bkls']),
                   onTap: () => openDetailed(items[index]),
                 )));
           }
@@ -130,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       pinned: true,
                       flexibleSpace: FlexibleSpaceBar(
                           centerTitle: true,
-                          title: Text(data['name'],
+                          title: Text(data['name'][langChosen],
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16.0,
@@ -149,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ];
               },
               body: Center(
-                child: wikiInfo(data['name']),
+                child: wikiInfo(data['name'][langChosen]),
               ),
             ),
           );
@@ -204,6 +207,31 @@ class _MyHomePageState extends State<MyHomePage> {
       });
   }
 
+  final languages = ['ru', 'en', 'zh', 'ru'];
+  String langChosen = 'ru';
+  String langNext = 'en';
+
+  _selectNextLang() {
+    int index = languages.indexOf(langChosen);
+    index += 1;
+    if (index == 3) index = 0;
+    langChosen = languages[index];
+    langNext = languages[index + 1];
+    setState(() {});
+  }
+
+  _getBklAsset(item) {
+    int num = 1;
+    if (item > 300)
+      num = 7;
+    else
+      num = (item + 50) ~/ 50;
+    // return Text(num.toString()+'/n'+item.toString());
+    // if (num> 7) {num = 7;}
+
+    return (Image.asset('graphics/bk0$num.png'));
+  }
+
   Future<List<Map<String, dynamic>>> dayRequest(int from, int to) async {
     String nowaday = DateFormat('MM.dd').format(selectedDate);
     apptitle = DateFormat('d MMMM', 'ru_RU').format(selectedDate) + born;
@@ -213,40 +241,42 @@ class _MyHomePageState extends State<MyHomePage> {
     var jsonResponse = jsonDecode(response.body);
 
     return List.generate(to - from, (index) {
-      List emoji = jsonResponse[index]['emoji'];
+      var item = jsonResponse[index];
+      List emoji = item['emoji'];
       String icon = '⁉️';
       if (emoji.length > 0) {
         icon = emoji[0];
         final blankspace = icon.indexOf(' ');
         if (blankspace > 0) {
-          icon = icon.substring(0,blankspace);
+          icon = icon.substring(0, blankspace);
         }
         final dashinidex = icon.indexOf('-');
         if (dashinidex > 0) {
-          icon = icon.substring(0,dashinidex);
+          icon = icon.substring(0, dashinidex);
         }
       }
       return {
-        'name': '${jsonResponse[index]['name']}',
-        'tags': jsonResponse[index]['tags'],
-        'photo': jsonResponse[index]['photo'],
-        'info': jsonResponse[index]['descr'],
-        'flag': jsonResponse[index]['flag'],
+        'name': jsonDecode(item['links']),
+        'tags': item['tags'],
+        'photo': item['photo'],
+        'info': jsonDecode(item['descr']),
+        'flag': item['flag'],
+        'bkls': item['bklinks'],
         'icon': icon
       };
     });
   }
-}
 
-Future<String> getWikiPage(String name) async {
-  Uri dataURL =
-      Uri.parse('https://ru.wikipedia.org/w/api.php?action=query&format=json'
-          '&prop=extracts&explaintext=1&exintro=1&titles=$name');
-  http.Response response = await http.get(dataURL);
+  Future<String> getWikiPage(String name) async {
+    Uri dataURL = Uri.parse(
+        'https://$langChosen.wikipedia.org/w/api.php?action=query&format=json'
+        '&prop=extracts&explaintext=1&exintro=1&titles=$name');
+    http.Response response = await http.get(dataURL);
 
-  var wdjson = jsonDecode(response.body);
-  String wdkey = wdjson['query']['pages'].keys.toList()[0].toString();
-  String result = wdjson['query']['pages'][wdkey]['extract'];
+    var wdjson = jsonDecode(response.body);
+    String wdkey = wdjson['query']['pages'].keys.toList()[0].toString();
+    String result = wdjson['query']['pages'][wdkey]['extract'];
 
-  return result;
+    return result;
+  }
 }
