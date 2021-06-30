@@ -35,10 +35,11 @@ def get_tags(wdentity, lang):
 
 
 def get_describe(wdentity, lang):
-    occu_descr = '--nodata--'
+    occu_descr = {'ru': None}
     descr_data = Wdentities.query.filter_by(wdentity=wdentity)
     if descr_data.count():
-        occu_descr = get_notional_value(descr_data[0].descr_cache, lang)
+        # occu_descr = get_notional_value(descr_data[0].descr_cache, lang)
+        occu_descr = descr_data[0].descr_cache
     return occu_descr
 
 
@@ -123,17 +124,14 @@ def jsss():
         #     print('noitem', a)
         # a += 1
     for item in list_d:
-        links = json.loads(item['links'])
-        name = links['ru']
         del item['_sa_instance_state']
-        del item['links']
         del item['bdate']
         photo = get_wc_thumb(item['photo'])
         tags, emoji = get_tags(item['wdentity'], 'ru')
         descr = get_describe(item['wdentity'], 'ru')
         flag = get_flag(item['wdentity'])
 
-        item.update({'tags': tags, 'name': name, 'photo': photo, 'descr': descr, 'emoji': emoji, 'flag': flag})
+        item.update({'tags': tags, 'photo': photo, 'descr': descr, 'emoji': emoji, 'flag': flag})
 
     # pp = pprint.PrettyPrinter(indent=4)
     # print (pp.pprint(list_d))
