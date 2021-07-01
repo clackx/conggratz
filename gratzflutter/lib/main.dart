@@ -4,16 +4,35 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(new MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _AppState createState() => new _AppState();
+
+  static void setTheme(BuildContext context, int newColor, int brightness) {
+    _AppState? state = context.findAncestorStateOfType<_AppState>()!;
+    state.setState(() {
+      state._color = newColor;
+      state._brightness = brightness;
+    });
+  }
+}
+
+class _AppState extends State<MyApp> {
+  int _color = Colors.green.value;
+  int _brightness = Brightness.light.index;
+
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      theme: new ThemeData(primarySwatch: Colors.green),
-      home: new MyHomePage(),
-    );
+        theme: new ThemeData(
+            primaryColor: Color(_color),
+            brightness: Brightness.values[_brightness],
+        ),
+        home: new MyHomePage());
   }
 }
 
@@ -27,10 +46,29 @@ class _MyHomePageState extends State<MyHomePage> {
   ScrollController _scrollController = new ScrollController();
   bool isPerformingRequest = false;
 
+  SharedPreferences? preferences;
+  int mainColor = Colors.green.value;
+  int brightness = Brightness.dark.index;
+
+  Future<void> initializePreference() async {
+    preferences = await SharedPreferences.getInstance();
+    int? savedColor = this.preferences?.getInt("color");
+    int? savedBright = this.preferences?.getInt("bright");
+    // print ('>>>>'+savedColor.toString()+'//'+savedBright.toString());
+    mainColor = savedColor ?? Colors.green.value;
+    brightness = savedBright ?? Brightness.light.index;
+    this.preferences?.setInt("color", mainColor);
+    this.preferences?.setInt("bright", brightness);
+    MyApp.setTheme(context, mainColor, brightness);
+  }
+
   @override
   void initState() {
     super.initState();
     initializeDateFormatting('ru_RU');
+    initializePreference().whenComplete(() {
+      setState(() {});
+    });
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
@@ -53,6 +91,8 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(apptitle),
         elevation: 15.0,
         actions: [
+          IconButton(
+              icon: Icon(Icons.ac_unit), onPressed: () => _changeColor()),
           IconButton(
               icon: Image.asset('graphics/clndr2.png'),
               onPressed: () => _selectDate(context)),
@@ -226,10 +266,27 @@ class _MyHomePageState extends State<MyHomePage> {
       num = 7;
     else
       num = (item + 50) ~/ 50;
-    // return Text(num.toString()+'/n'+item.toString());
-    // if (num> 7) {num = 7;}
-
     return (Image.asset('graphics/bk0$num.png'));
+  }
+
+  _changeColor() {
+    List colors = [
+      Colors.green.value,
+      Colors.blue.value,
+      Colors.yellow.value,
+      Colors.orange.value,
+      Colors.red.value,
+      Colors.green.value
+    ];
+    int _i = colors.indexOf(mainColor);
+    _i += 1;
+    mainColor = colors[_i];
+    if (_i > 4) brightness = (brightness - 1).abs();
+
+    this.preferences?.setInt("color", mainColor);
+    this.preferences?.setInt("bright", brightness);
+    setState(() {});
+    MyApp.setTheme(context, mainColor, brightness);
   }
 
   Future<List<Map<String, dynamic>>> dayRequest(int from, int to) async {
