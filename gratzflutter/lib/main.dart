@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'settings.dart';
 
 void main() => runApp(new MyApp());
 
@@ -12,25 +13,25 @@ class MyApp extends StatefulWidget {
   @override
   _AppState createState() => new _AppState();
 
-  static void setTheme(BuildContext context, int newColor, int brightness) {
+  static void setTheme(BuildContext context, int color, int brightness) {
     _AppState? state = context.findAncestorStateOfType<_AppState>()!;
     state.setState(() {
-      state._color = newColor;
-      state._brightness = brightness;
+      state.color = color;
+      state.brightness = brightness;
     });
   }
 }
 
 class _AppState extends State<MyApp> {
-  int _color = Colors.green.value;
-  int _brightness = Brightness.light.index;
+  int color = Colors.green.value;
+  int brightness = Brightness.light.index;
 
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
         theme: new ThemeData(
-            primaryColor: Color(_color),
-            brightness: Brightness.values[_brightness],
+          primaryColor: Color(color),
+          brightness: Brightness.values[brightness],
         ),
         home: new MyHomePage());
   }
@@ -49,16 +50,13 @@ class _MyHomePageState extends State<MyHomePage> {
   SharedPreferences? preferences;
   int mainColor = Colors.green.value;
   int brightness = Brightness.dark.index;
+  bool isDark = false;
 
   Future<void> initializePreference() async {
     preferences = await SharedPreferences.getInstance();
-    int? savedColor = this.preferences?.getInt("color");
-    int? savedBright = this.preferences?.getInt("bright");
-    // print ('>>>>'+savedColor.toString()+'//'+savedBright.toString());
-    mainColor = savedColor ?? Colors.green.value;
-    brightness = savedBright ?? Brightness.light.index;
-    this.preferences?.setInt("color", mainColor);
-    this.preferences?.setInt("bright", brightness);
+    int mainColor = preferences?.getInt("color") ?? Colors.green.value;
+    int brightness = preferences?.getInt("bright") ?? Brightness.light.index;
+
     MyApp.setTheme(context, mainColor, brightness);
   }
 
@@ -92,13 +90,13 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 15.0,
         actions: [
           IconButton(
-              icon: Icon(Icons.ac_unit), onPressed: () => _changeColor()),
-          IconButton(
               icon: Image.asset('graphics/clndr2.png'),
               onPressed: () => _selectDate(context)),
           IconButton(
               icon: Image.asset('graphics/flag$langNext.png'),
               onPressed: () => _selectNextLang()),
+          IconButton(
+              icon: Icon(Icons.ac_unit), onPressed: () => openSettings()),
           Image.asset('graphics/blank.png')
         ],
       ),
@@ -269,24 +267,14 @@ class _MyHomePageState extends State<MyHomePage> {
     return (Image.asset('graphics/bk0$num.png'));
   }
 
-  _changeColor() {
-    List colors = [
-      Colors.green.value,
-      Colors.blue.value,
-      Colors.yellow.value,
-      Colors.orange.value,
-      Colors.red.value,
-      Colors.green.value
-    ];
-    int _i = colors.indexOf(mainColor);
-    _i += 1;
-    mainColor = colors[_i];
-    if (_i > 4) brightness = (brightness - 1).abs();
-
-    this.preferences?.setInt("color", mainColor);
-    this.preferences?.setInt("bright", brightness);
-    setState(() {});
-    MyApp.setTheme(context, mainColor, brightness);
+  openSettings() async {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(
+            builder: (context) =>
+                SettingsScreenWidget(preferences: preferences)))
+        .then((_) => initializePreference().whenComplete(() {
+              setState(() {});
+            }));
   }
 
   Future<List<Map<String, dynamic>>> dayRequest(int from, int to) async {
