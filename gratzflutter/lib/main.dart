@@ -56,6 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
     preferences = await SharedPreferences.getInstance();
     int mainColor = preferences?.getInt("color") ?? Colors.green.value;
     int brightness = preferences?.getInt("bright") ?? Brightness.light.index;
+    isDark = (brightness == 0) ? true : false;
 
     MyApp.setTheme(context, mainColor, brightness);
   }
@@ -81,6 +82,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    Image settingsIcon = isDark
+        ? Image.asset('graphics/moon.png')
+        : Image.asset('graphics/sun.png');
     if (items.length == 0) {
       _getMoreData();
     }
@@ -95,8 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
               icon: Image.asset('graphics/flag$langNext.png'),
               onPressed: () => _selectNextLang()),
-          IconButton(
-              icon: Icon(Icons.ac_unit), onPressed: () => openSettings()),
+          IconButton(icon: settingsIcon, onPressed: () => openSettings()),
           Image.asset('graphics/blank.png')
         ],
       ),
