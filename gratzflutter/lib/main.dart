@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,14 +12,6 @@ void main() => runApp(new MyApp());
 class MyApp extends StatefulWidget {
   @override
   _AppState createState() => new _AppState();
-
-  static void setTheme(BuildContext context, int color, int brightness) {
-    _AppState? state = context.findAncestorStateOfType<_AppState>()!;
-    state.setState(() {
-      state.color = color;
-      state.brightness = brightness;
-    });
-  }
 }
 
 class _AppState extends State<MyApp> {
@@ -29,6 +21,9 @@ class _AppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+        ],
         theme: new ThemeData(
           primaryColor: Color(color),
           brightness: Brightness.values[brightness],
@@ -43,41 +38,51 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var items = [];
-  ScrollController _scrollController = new ScrollController();
-  bool isPerformingRequest = false;
+  Map<String, List<Map<String, dynamic>>> allItems = {};
+  ScrollController _scrollController1 = new ScrollController();
+  ScrollController _scrollController2 = new ScrollController();
+  ScrollController _scrollController3 = new ScrollController();
+  Map<int, bool> isPerformingRequest = {};
 
   SharedPreferences? preferences;
   int mainColor = Colors.green.value;
   int brightness = Brightness.dark.index;
   bool isDark = false;
 
-  Future<void> initializePreference() async {
+  Future<void> initializePreferences() async {
     preferences = await SharedPreferences.getInstance();
-    int mainColor = preferences?.getInt("color") ?? Colors.green.value;
-    int brightness = preferences?.getInt("bright") ?? Brightness.light.index;
-    isDark = (brightness == 0) ? true : false;
+  }
 
-    MyApp.setTheme(context, mainColor, brightness);
+  void loadPreferences() async {
+    mainColor = preferences?.getInt("color") ?? Colors.green.value;
+    brightness = preferences?.getInt("bright") ?? Brightness.light.index;
+    isDark = (brightness == 0) ? true : false;
+    setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-    initializeDateFormatting('ru_RU');
-    initializePreference().whenComplete(() {
-      setState(() {});
+    initializePreferences().whenComplete(() {
+      loadPreferences();
     });
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
-        _getMoreData();
-      }
-    });
+
+    hangListener(int tabNum) {
+      ScrollController _scrollController = getScrollController(tabNum);
+      _scrollController.addListener(() {
+        if (_scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent) {
+          _getMoreData(tabNum);
+        }
+      });
+    }
+
+    hangListener(0);
+    hangListener(1);
+    hangListener(2);
   }
 
-  String apptitle = "Cong Gratz flutter app";
-  String born = " родились";
+  String apptitle = "Cong Gratz календарь";
   DateTime selectedDate = DateTime.now();
 
   @override
@@ -85,25 +90,15 @@ class _MyHomePageState extends State<MyHomePage> {
     Image settingsIcon = isDark
         ? Image.asset('graphics/moon.png')
         : Image.asset('graphics/sun.png');
-    if (items.length == 0) {
-      _getMoreData();
-    }
-    return new Scaffold(
-      appBar: AppBar(
-        title: Text(apptitle),
-        elevation: 15.0,
-        actions: [
-          IconButton(
-              icon: Image.asset('graphics/clndr2.png'),
-              onPressed: () => _selectDate(context)),
-          IconButton(
-              icon: Image.asset('graphics/flag$langNext.png'),
-              onPressed: () => _selectNextLang()),
-          IconButton(icon: settingsIcon, onPressed: () => openSettings()),
-          Image.asset('graphics/blank.png')
-        ],
-      ),
-      body: ListView.builder(
+    if (!allItems.containsKey(bdayFromOffset(-1))) _getMoreData(0);
+    if (!allItems.containsKey(bdayFromOffset(0))) _getMoreData(1);
+    if (!allItems.containsKey(bdayFromOffset(1))) _getMoreData(2);
+
+    ListView listView(int tabNum) {
+      String bday = bdayFromOffset(tabNum - 1);
+      List<Map<String, dynamic>> items = allItems[bday] ?? [];
+
+      return ListView.builder(
         itemCount: items.length + 1,
         itemBuilder: (context, index) {
           if (index >= items.length) {
@@ -126,9 +121,48 @@ class _MyHomePageState extends State<MyHomePage> {
                 )));
           }
         },
-        controller: _scrollController,
-      ),
-    );
+        controller: getScrollController(tabNum),
+      );
+    }
+
+    return DefaultTabController(
+        length: 3,
+        initialIndex: 1,
+        child: MaterialApp(
+            theme: new ThemeData(
+              primaryColor: Color(mainColor),
+              brightness: Brightness.values[brightness],
+            ),
+            home: Scaffold(
+                appBar: AppBar(
+                  title: Text(apptitle),
+                  elevation: 15.0,
+                  actions: [
+                    IconButton(
+                        icon: Image.asset('graphics/clndr2.png'),
+                        onPressed: () => _selectDate(context)),
+                    IconButton(
+                        icon: Image.asset('graphics/flag$langNext.png'),
+                        onPressed: () => _selectNextLang()),
+                    IconButton(
+                        icon: settingsIcon, onPressed: () => openSettings()),
+                    Image.asset('graphics/blank.png')
+                  ],
+                  bottom: TabBar(
+                    isScrollable: true,
+                    labelStyle: TextStyle(fontSize: 26),
+                    tabs: <Tab>[
+                      Tab(text: dateFromOffsetLocalized(-1)[langChosen]),
+                      Tab(text: dateFromOffsetLocalized(0)[langChosen]),
+                      Tab(text: dateFromOffsetLocalized(1)[langChosen]),
+                    ],
+                  ),
+                ),
+                body: TabBarView(children: <Widget>[
+                  listView(0),
+                  listView(1),
+                  listView(2)
+                ]))));
   }
 
   openDetailed(data) async {
@@ -211,11 +245,48 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  _getMoreData() async {
-    if (!isPerformingRequest) {
-      setState(() => isPerformingRequest = true);
+  int msFromOffset(int offset) {
+    return selectedDate.millisecondsSinceEpoch + 1000 * 60 * 60 * 24 * offset;
+  }
+
+  String bdayFromOffset(int offset) {
+    return DateFormat('MM.dd')
+        .format(DateTime.fromMillisecondsSinceEpoch(msFromOffset(offset)));
+  }
+
+  Map<String, String> dateFromOffsetLocalized(int offset) {
+    Map<String, String> dateLocalized = {};
+    for (String lang in languages) {
+      dateLocalized[lang] = DateFormat('d MMMM', getLocale(lang))
+          .format(DateTime.fromMillisecondsSinceEpoch(msFromOffset(offset)));
+    }
+    return dateLocalized;
+  }
+
+  ScrollController getScrollController(int tabNum) {
+    ScrollController _scrollController = _scrollController1;
+    if (tabNum == 1) _scrollController = _scrollController2;
+    if (tabNum == 2) _scrollController = _scrollController3;
+    return _scrollController;
+  }
+
+  bool getPerformingRequestStatus(int tabNum) {
+    bool result = false;
+    if (!isPerformingRequest.containsKey(tabNum)) {
+      isPerformingRequest[tabNum] = false;
+    } else
+      result = isPerformingRequest[tabNum]!;
+    return result;
+  }
+
+  _getMoreData(int tabNum) async {
+    String bday = bdayFromOffset(tabNum - 1);
+    ScrollController _scrollController = getScrollController(tabNum);
+    if (!getPerformingRequestStatus(tabNum)) {
+      List<Map<String, dynamic>> items = allItems[bday] ?? [];
+      setState(() => isPerformingRequest[tabNum] = true);
       List<Map<String, dynamic>> newEntries =
-          await dayRequest(items.length, items.length + 15);
+          await dayRequest(bday, items.length, items.length + 15);
       if (newEntries.isEmpty) {
         double edge = 50.0;
         double offsetFromBottom = _scrollController.position.maxScrollExtent -
@@ -228,14 +299,19 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
       setState(() {
-        items.addAll(newEntries);
-        isPerformingRequest = false;
+        if (allItems.containsKey(bday))
+          allItems[bday]!.addAll(newEntries);
+        else
+          allItems[bday] = newEntries;
+
+        isPerformingRequest[tabNum] = false;
       });
     }
   }
 
   _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
+        locale: Locale(langChosen),
         context: context,
         initialDate: selectedDate,
         firstDate: DateTime(2021),
@@ -244,13 +320,17 @@ class _MyHomePageState extends State<MyHomePage> {
     if (picked != null && picked != selectedDate)
       setState(() {
         selectedDate = picked;
-        items = [];
       });
   }
 
   final languages = ['ru', 'en', 'zh', 'ru'];
   String langChosen = 'ru';
   String langNext = 'en';
+
+  String getLocale(String lang) {
+    final locales = ['ru_RU', 'en_US', 'zh_CN'];
+    return locales[languages.indexOf(lang)];
+  }
 
   _selectNextLang() {
     int index = languages.indexOf(langChosen);
@@ -275,14 +355,11 @@ class _MyHomePageState extends State<MyHomePage> {
         .push(MaterialPageRoute<void>(
             builder: (context) =>
                 SettingsScreenWidget(preferences: preferences)))
-        .then((_) => initializePreference().whenComplete(() {
-              setState(() {});
-            }));
+        .then((_) => loadPreferences());
   }
 
-  Future<List<Map<String, dynamic>>> dayRequest(int from, int to) async {
-    String nowaday = DateFormat('MM.dd').format(selectedDate);
-    apptitle = DateFormat('d MMMM', 'ru_RU').format(selectedDate) + born;
+  Future<List<Map<String, dynamic>>> dayRequest(
+      String nowaday, int from, int to) async {
     Uri dataURL = Uri.parse(
         'http://qrcat.ru:8081/json?bdate=$nowaday&limit=15&offset=$from');
     http.Response response = await http.get(dataURL);
