@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'settings.dart';
 
 void main() => runApp(new MyApp());
@@ -12,18 +12,26 @@ void main() => runApp(new MyApp());
 class MyApp extends StatefulWidget {
   @override
   _AppState createState() => new _AppState();
+
+  static void setLocale(BuildContext context, String locale) {
+    _AppState? state = context.findAncestorStateOfType<_AppState>()!;
+    state.setState(() {
+      state._locale = locale;
+    });
+  }
 }
 
 class _AppState extends State<MyApp> {
   int color = Colors.green.value;
   int brightness = Brightness.light.index;
+  String _locale = 'ru';
 
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-        ],
+        locale: Locale(_locale),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: new ThemeData(
           primaryColor: Color(color),
           brightness: Brightness.values[brightness],
@@ -129,13 +137,14 @@ class _MyHomePageState extends State<MyHomePage> {
         length: 3,
         initialIndex: 1,
         child: MaterialApp(
+            locale: Locale(langChosen),
             theme: new ThemeData(
               primaryColor: Color(mainColor),
               brightness: Brightness.values[brightness],
             ),
             home: Scaffold(
                 appBar: AppBar(
-                  title: Text(apptitle),
+                  title: Text(AppLocalizations.of(context)!.main_title),
                   elevation: 15.0,
                   actions: [
                     IconButton(
@@ -338,6 +347,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (index == 3) index = 0;
     langChosen = languages[index];
     langNext = languages[index + 1];
+    MyApp.setLocale(context, langChosen);
     setState(() {});
   }
 

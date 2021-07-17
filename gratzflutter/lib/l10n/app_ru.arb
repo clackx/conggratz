@@ -1,0 +1,16 @@
+{
+    "main_title": "Cong Gratz Календарь",
+    "settings_screen_title": "Настройки",
+    "accounting_setting": "Управление аккаунтом",
+    "accounting_subtitle": "Если требуется поддержка лайков",
+    "theme_setting": "Цветовая тема",
+    "theme_subtitle": "Выбрать цвет или сменить тему",
+    "language_setting": "Язык",
+    "language_subtitle": "Настройки языка интерфейса и страны",
+    "helptour": "Помощь",
+    "helptour_subtitle": "Тур по приложению",
+    "about": "О",
+    "about_subtitile": "О приложении",
+    "comingsoon": "Скоро..",
+    "infuture": "В будущих версиях"
+}

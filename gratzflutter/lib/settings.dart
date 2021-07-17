@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsScreenWidget extends StatefulWidget {
   final SharedPreferences? preferences;
@@ -19,6 +20,7 @@ class SettingsScreen extends State<SettingsScreenWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final alt = AppLocalizations.of(context)!;
     int mainColor = 0;
     int brightness = 0;
 
@@ -42,10 +44,12 @@ class SettingsScreen extends State<SettingsScreenWidget> {
         theme: new ThemeData(
             primaryColor: Color(mainColor),
             brightness: Brightness.values[brightness]),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
-              title: const Text('Bottom App Bar Demo'),
+              title: Text(alt.settings_screen_title),
             ),
             body: ListView(
                 padding: const EdgeInsets.only(bottom: 88),
@@ -55,8 +59,8 @@ class SettingsScreen extends State<SettingsScreenWidget> {
                           padding: EdgeInsets.symmetric(
                               horizontal: 10.0, vertical: 10.0),
                           child: Icon(Icons.account_circle_outlined)),
-                      title: Text('Accounting'),
-                      subtitle: Text('Log in for store your favorites'),
+                      title: Text(alt.accounting_setting),
+                      subtitle: Text(alt.accounting_subtitle),
                       onTap: () => openDialog()),
                   Divider(
                     color: Colors.black,
@@ -66,8 +70,8 @@ class SettingsScreen extends State<SettingsScreenWidget> {
                           padding: EdgeInsets.symmetric(
                               horizontal: 10.0, vertical: 10.0),
                           child: Icon(Icons.color_lens_outlined)),
-                      title: Text('Theme colors'),
-                      subtitle: Text('Choose colors or change theme'),
+                      title: Text(alt.theme_setting),
+                      subtitle: Text(alt.theme_subtitle),
                       onTap: () => openColorSettings()),
                   Divider(
                     color: Colors.black,
@@ -77,8 +81,8 @@ class SettingsScreen extends State<SettingsScreenWidget> {
                           padding: EdgeInsets.symmetric(
                               horizontal: 10.0, vertical: 10.0),
                           child: Icon(Icons.language_outlined)),
-                      title: Text('Language'),
-                      subtitle: Text('Set logic language and ui language'),
+                      title: Text(alt.language_setting),
+                      subtitle: Text(alt.language_subtitle),
                       onTap: () => openDialog()),
                   Divider(
                     color: Colors.black,
@@ -88,8 +92,8 @@ class SettingsScreen extends State<SettingsScreenWidget> {
                           padding: EdgeInsets.symmetric(
                               horizontal: 10.0, vertical: 10.0),
                           child: Icon(Icons.tour_outlined)),
-                      title: Text('Help'),
-                      subtitle: Text('App tour'),
+                      title: Text(alt.helptour),
+                      subtitle: Text(alt.helptour_subtitle),
                       onTap: () => openDialog()),
                   Divider(
                     color: Colors.black,
@@ -99,8 +103,8 @@ class SettingsScreen extends State<SettingsScreenWidget> {
                           padding: EdgeInsets.symmetric(
                               horizontal: 10.0, vertical: 10.0),
                           child: Icon(Icons.help_outline_outlined)),
-                      title: Text('About'),
-                      subtitle: Text('Credits'),
+                      title: Text(alt.about),
+                      subtitle: Text(alt.about_subtitile),
                       onTap: () => openDialog()),
                 ])));
   }
@@ -109,8 +113,8 @@ class SettingsScreen extends State<SettingsScreenWidget> {
     showDialog<String>(
         context: context,
         builder: (BuildContext context) => AlertDialog(
-                title: const Text('Coming soon..'),
-                content: const Text('In future releases'),
+                title: Text(AppLocalizations.of(context)!.comingsoon),
+                content: Text(AppLocalizations.of(context)!.infuture),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => Navigator.pop(context),

@@ -1,0 +1,17 @@
+{
+  "main_title": "Cong Gratz Calendar",
+  "settings_screen_title": "Settings",
+  "accounting_setting": "Accounting",
+  "accounting_subtitle": "Log in for store your favorites",
+  "theme_setting": "Theme colors",
+  "theme_subtitle": "Choose colors or change theme",
+  "language_setting": "Language",
+  "language_subtitle": "Set logic language and ui language",
+  "helptour": "Help",
+  "helptour_subtitle": "App tour",
+  "about": "About",
+  "about_subtitile": "Credits",
+  "comingsoon": "Coming soon..",
+  "infuture": "In future releases"
+
+}
