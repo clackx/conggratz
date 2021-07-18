@@ -48,7 +48,7 @@ class SettingsScreen extends State<SettingsScreenWidget> {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
             appBar: AppBar(
-              automaticallyImplyLeading: false,
+              leading: BackButton(onPressed: () => Navigator.of(context).pop()),
               title: Text(alt.settings_screen_title),
             ),
             body: ListView(
@@ -165,7 +165,7 @@ class ColorSettingsScreen extends State<ColorSettingsScreenWidget> {
             brightness: Brightness.values[brightness]),
         home: Scaffold(
           appBar: AppBar(
-            automaticallyImplyLeading: false,
+            leading: BackButton(onPressed: () => Navigator.of(context).pop()),
             title: const Text('Bottom App Bar Demo'),
           ),
           body: ListView(
