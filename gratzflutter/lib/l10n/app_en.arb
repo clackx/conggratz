@@ -12,6 +12,13 @@
   "about": "About",
   "about_subtitile": "Credits",
   "comingsoon": "Coming soon..",
-  "infuture": "In future releases"
-
+  "infuture": "In future releases",
+  "theme_colororange": "Orange",
+  "theme_coloryellow": "Yellow",
+  "theme_colorgreen": "Green",
+  "theme_colorviolet": "Violet",
+  "theme_colorblue": "Blue",
+  "theme_colorred": "Red",
+  "theme_darkmode": "Dark mode",
+  "theme_maincolor": "Main color"
 }

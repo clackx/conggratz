@@ -12,5 +12,13 @@
     "about": "关于",
     "about_subtitile": "学分",
     "comingsoon": "即将推出..",
-    "infuture": "在未来的版本中"
+    "infuture": "在未来的版本中",
+    "theme_colororange": "橙子",
+    "theme_coloryellow": "黄色的",
+    "theme_colorgreen": "绿色的",
+    "theme_colorviolet": "紫色",
+    "theme_colorblue": "蓝色的",
+    "theme_colorred": "红色的",
+    "theme_darkmode": "黑暗模式",
+    "theme_maincolor": "主色"
 }

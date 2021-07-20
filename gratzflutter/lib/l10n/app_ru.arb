@@ -1,5 +1,5 @@
 {
-    "main_title": "Cong Gratz Календарь",
+    "main_title": "Конг Грац Календарь",
     "settings_screen_title": "Настройки",
     "accounting_setting": "Управление аккаунтом",
     "accounting_subtitle": "Если требуется поддержка лайков",
@@ -12,5 +12,13 @@
     "about": "О",
     "about_subtitile": "О приложении",
     "comingsoon": "Скоро..",
-    "infuture": "В будущих версиях"
+    "infuture": "В будущих версиях",
+    "theme_colororange": "Оранж",
+    "theme_coloryellow": "Жёлтый",
+    "theme_colorgreen": "Зелёный",
+    "theme_colorviolet": "Фиолет",
+    "theme_colorblue": "Синий",
+    "theme_colorred": "Красный",
+    "theme_darkmode": "Тёмный режим",
+    "theme_maincolor": "Основной цвет"
 }

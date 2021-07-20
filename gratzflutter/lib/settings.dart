@@ -105,7 +105,7 @@ class SettingsScreen extends State<SettingsScreenWidget> {
                           child: Icon(Icons.help_outline_outlined)),
                       title: Text(alt.about),
                       subtitle: Text(alt.about_subtitile),
-                      onTap: () => openDialog()),
+                      onTap: () => aboutDialog()),
                 ])));
   }
 
@@ -121,6 +121,20 @@ class SettingsScreen extends State<SettingsScreenWidget> {
                     child: const Text('OK'),
                   )
                 ]));
+  }
+
+  aboutDialog() {
+    showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.main_title),
+            content: Text('Version 0.1.1'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              )
+            ]));
   }
 }
 
@@ -147,6 +161,7 @@ class ColorSettingsScreen extends State<ColorSettingsScreenWidget> {
     int mainColor = preferences?.getInt("color") ?? Colors.green.value;
     int brightness = preferences?.getInt("bright") ?? Brightness.light.index;
     isDark = (brightness == 0) ? true : false;
+    final alt = AppLocalizations.of(context)!;
 
     void onRadioTap(int? value) {
       setState(() => mainColor = value!);
@@ -163,45 +178,48 @@ class ColorSettingsScreen extends State<ColorSettingsScreenWidget> {
         theme: new ThemeData(
             primaryColor: Color(mainColor),
             brightness: Brightness.values[brightness]),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           appBar: AppBar(
             leading: BackButton(onPressed: () => Navigator.of(context).pop()),
-            title: const Text('Bottom App Bar Demo'),
+            title: Text(alt.theme_setting),
           ),
           body: ListView(
               padding: const EdgeInsets.only(bottom: 88),
               children: <Widget>[
                 SwitchListTile(
-                  title: const Text('Dark Theme'),
+                  title: Text(alt.theme_darkmode),
                   value: isDark,
                   onChanged: onTumblerTap,
                 ),
                 const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text('Main color suchenka'),
+                  child:
+                      Text('Main color dawg', style: TextStyle(fontSize: 18)),
                 ),
                 RadioListTile<int>(
-                    title: const Text('Orange'),
+                    title: Text(alt.theme_colororange),
                     value: Colors.orange.value,
                     groupValue: mainColor,
                     onChanged: onRadioTap),
                 RadioListTile<int>(
-                    title: const Text('Green'),
+                    title: Text(alt.theme_colorgreen),
                     value: Colors.green.value,
                     groupValue: mainColor,
                     onChanged: onRadioTap),
                 RadioListTile<int>(
-                    title: const Text('Violet'),
+                    title: Text(alt.theme_colorblue),
                     value: Colors.deepPurple.value,
                     groupValue: mainColor,
                     onChanged: onRadioTap),
                 RadioListTile<int>(
-                    title: const Text('Yellow'),
+                    title: Text(alt.theme_coloryellow),
                     value: Colors.yellow.value,
                     groupValue: mainColor,
                     onChanged: onRadioTap),
                 RadioListTile<int>(
-                    title: const Text('Red'),
+                    title: Text(alt.theme_colorred),
                     value: Colors.red.value,
                     groupValue: mainColor,
                     onChanged: onRadioTap),
