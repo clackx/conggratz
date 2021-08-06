@@ -177,7 +177,6 @@ class Memdb:
         if data:
             return data[0]
         else:
-            maindb = Mdb()
             data = maindb.get_user(userid)
             self._load_settings(userid, data)
             return data
@@ -200,3 +199,7 @@ class Memdb:
     def reload(self):
         self.cursor.execute(f"DELETE from memble")
         self.connection.commit()
+
+
+maindb = Mdb()
+memdb = Memdb()

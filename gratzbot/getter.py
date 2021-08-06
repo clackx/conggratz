@@ -2,14 +2,12 @@ import requests
 import json
 from datetime import datetime
 from telebot import types
-import mdb
+from mdb import maindb
 import user
 import elogger
 from misc import get_wc_thumb
 from messages import get_translation, get_dayname
 from config import admin_id
-
-maindb = mdb.Mdb()
 
 
 def please_request(url, params=''):

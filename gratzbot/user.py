@@ -1,10 +1,7 @@
 import json
 import elogger
-import mdb
+from mdb import maindb, memdb
 import datetime
-
-maindb = mdb.Mdb()
-memdb = mdb.Memdb()
 
 
 def _get_settings(user_id):

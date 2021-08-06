@@ -3,8 +3,7 @@ import mdb
 import sender
 from misc import birthday_from_offset
 from config import admin_id
-
-maindb = mdb.Mdb()
+from mdb import maindb
 
 users = sum(maindb.get_notication_requiring(), ())
 bday = birthday_from_offset(0)

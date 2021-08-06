@@ -4,9 +4,8 @@ import hashlib
 import random
 import re
 import config
-import mdb
+from mdb import maindb
 
-maindb = mdb.Mdb()
 bot = telebot.TeleBot(config.API_TOKEN)
 
 
