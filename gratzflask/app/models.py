@@ -2,11 +2,12 @@ from app import db
 
 
 class People(db.Model):
-    bdate = db.Column(db.String, primary_key=True)
-    bklinks = db.Column(db.Integer)
     wdentity = db.Column(db.String, primary_key=True)
-    photo = db.Column(db.String)
+    bdate = db.Column(db.String, primary_key=True)
+    name = db.Column(db.Integer)
+    descrs = db.Column(db.String)
     links = db.Column(db.String)
+    photo = db.Column(db.String)
 
 
 class Occupations(db.Model):
@@ -15,9 +16,6 @@ class Occupations(db.Model):
     emoji = db.Column(db.String)
     descr_cache = db.Column(db.String)
 
-    def __repr__(self):
-        return '<OCCU {}>'.format(self.descr_cache)
-
 
 class Tags(db.Model):
     _id = db.Column(db.Integer)
@@ -25,7 +23,30 @@ class Tags(db.Model):
     occupation_entity = db.Column(db.String, primary_key=True)
 
 
-class Wdentities(db.Model):
-    wdentity = db.Column(db.String, primary_key=True)
-    descr_cache = db.Column(db.String)
-    flag = db.Column(db.String)
+class Countries(db.Model):
+    people_entity = db.Column(db.String, primary_key=True)
+    country_entity = db.Column(db.String, primary_key=True)
+
+
+class Flags(db.Model):
+    country_entity = db.Column(db.String, primary_key=True)
+    country_name = db.Column(db.String)
+    emoji_flag = db.Column(db.String)
+    svg_flag = db.Column(db.String)
+
+
+class Presorted(db.Model):
+    flyid = db.Column(db.Integer, primary_key=True)
+    bday = db.Column(db.String)
+    enwde = db.Column(db.String)
+    ruwde = db.Column(db.String)
+    bewde = db.Column(db.String)
+    ukwde = db.Column(db.String)
+    kkwde = db.Column(db.String)
+    dewde = db.Column(db.String)
+    frwde = db.Column(db.String)
+    eswde = db.Column(db.String)
+    itwde = db.Column(db.String)
+    zhwde = db.Column(db.String)
+    kowde = db.Column(db.String)
+    jawde = db.Column(db.String)
