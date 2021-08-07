@@ -203,6 +203,17 @@ def get_emoji_chars(emojis):
     return emores
 
 
+def get_first_emoji(emoji_str):
+    emoji = '⁉️'
+    if len(emoji_str):
+        for splitter in ('•', ' ', '-'):
+            split_index = emoji_str.find(splitter)
+            if split_index != -1:
+                emoji_str = emoji_str[:split_index]
+        emoji = emoji_str
+    return emoji
+
+
 def get_info(wdid, locale):
     """ get all stuff (tags, text and keyboard) for person info card """
     key, namelink = get_universal('sitelinks', [wdid], locale)[wdid]
@@ -268,11 +279,13 @@ def get_day_info(bday, locale, offset, count, debug=False):
     for wdentity in entities:
         l_tmp, name = namelist[wdentity]
         l_tmp, desc = desclist[wdentity]
+        flag = get_person_flag(wdentity)
         tag = tagdixt.get(wdentity, chr(8265))
+        ftag = get_first_emoji(tag)
         if tag == chr(8265):
             elogger.warn(f'{wdentity} ({name}) has no tags')
         res_names.append(name)
-        res_text += f' : : {name} : : {tag[:-1]}\n{desc}\n\n'
+        res_text += f' {flag}{ftag} : : {name}\n{desc}\n\n'
 
     endtime = datetime.now()
     stata = "<code>Spend {}s to request</code>".format((endtime - starttime).total_seconds())
@@ -352,6 +365,31 @@ def get_flag(country, flagonly=False):
         return emores
     return f'{emores} {country}'
 
+
+def get_person_flag(wdentity):
+    flags = maindb.get_flags(wdentity)
+    if not flags:
+        return get_emoji_chars('U+1F5FA')
+    else:
+        res_emoji_flag = '-'
+        for tmp_wde, emoji_flag in flags:
+            if not res_emoji_flag:
+                res_emoji_flag = emoji_flag
+
+            if emoji_flag[0] == 'U':
+                if res_emoji_flag[0] != 'U':
+                    res_emoji_flag = emoji_flag
+
+            if emoji_flag[0] == '~':
+                if res_emoji_flag[0] == '-':
+                    res_emoji_flag = emoji_flag
+
+        if res_emoji_flag[0] == '-':
+            return get_emoji_chars('U+1F5FA')
+        if res_emoji_flag[0] == '~':
+            return get_emoji_chars(res_emoji_flag[2:]) + '*'
+
+        return get_emoji_chars(res_emoji_flag)
 
 
 def check_tags(entities):

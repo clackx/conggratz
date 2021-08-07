@@ -118,6 +118,12 @@ class Mdb:
                 f'WHERE t.people_entity="{wdentity}" ORDER BY t.ROWID'
         return self.try_fetch(query, Mdb.ALL)
 
+    def get_flags(self, wdentity):
+        query = 'SELECT countries.people_entity, flags.emoji_flag FROM flags ' \
+                'JOIN countries ON countries.country_entity = flags.country_entity ' \
+                f'WHERE countries.people_entity = "{wdentity}"'
+        return self.try_fetch(query, Mdb.ALL)
+
     def get_entities(self, entities):
         elogger.enter(f'^^ get_entities {entities}')
         query = f"SELECT people_entity from tags WHERE people_entity IN {to_tuple_string(entities)}"
