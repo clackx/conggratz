@@ -54,9 +54,9 @@ class Mdb:
                     elogger.warn(f'!! sqlite3 IntegrityError :: {str(e)}')
                     return False
 
-    def get_day_intro(self, bdate, offset, count):
-        elogger.enter(f'^^ get_day_intro {bdate}, offset {offset}')
-        query = f'SELECT wdentity FROM people WHERE bdate="{bdate}" ORDER BY bklinks DESC LIMIT {offset}, {count}'
+    def get_day_intro(self, bdate, locale, offset, count):
+        elogger.enter(f'^^ get_day_intro {bdate} in ({locale}) locale with offset {offset}')
+        query = f'SELECT {locale}wde FROM presorted WHERE bday="{bdate}" LIMIT {count} OFFSET {offset}'
         return self.try_fetch(query, Mdb.ALL)
 
     def get_names(self, bday):
@@ -71,7 +71,7 @@ class Mdb:
 
     def get_unequivocal_wdid(self, id_list):
         elogger.enter(f'^^ get_unequivocal_wdid || ids: {len(id_list)}')
-        query = f'SELECT wdentity, MAX(bklinks) FROM people WHERE wdentity IN {to_tuple_string(id_list)}'
+        query = f'SELECT wdentity, MAX(qrank) FROM people WHERE wdentity IN {to_tuple_string(id_list)}'
         return self.try_fetch(query, Mdb.ONE)
 
     def get_universal(self, utypename, wdentities):
@@ -79,7 +79,7 @@ class Mdb:
         tuplestr = to_tuple_string(wdentities)
         query = {
             'labels':       f"SELECT occu_entity, descr_cache FROM occupations WHERE occu_entity IN {tuplestr}",
-            'descriptions': f"SELECT wdentity, descr_cache FROM wdentities WHERE wdentity IN {tuplestr}",
+            'descriptions': f"SELECT wdentity, descrs FROM people WHERE wdentity IN {tuplestr}",
             'sitelinks':    f"SELECT wdentity, links FROM people WHERE wdentity IN {tuplestr}"
         }.get(utypename)
         return self.try_fetch(query, Mdb.ALL)
@@ -90,8 +90,7 @@ class Mdb:
         queries = {
             'labels': (f"INSERT OR IGNORE INTO occupations VALUES ('{wdentity}', null, null, null) ",
                        f"UPDATE occupations SET descr_cache='{desc_dict}' WHERE occu_entity='{wdentity}'"),
-            'descriptions': (f"INSERT OR IGNORE INTO wdentities VALUES ('{wdentity}', null, null) ",
-                             f"UPDATE wdentities SET descr_cache='{desc_dict}' WHERE wdentity='{wdentity}'"),
+            'descriptions': (f"UPDATE people SET descrs='{desc_dict}' WHERE wdentity='{wdentity}'",),
             'sitelinks': (f"UPDATE people SET links='{desc_dict}' WHERE wdentity='{wdentity}'",)
         }.get(utypename)
         return self.try_commit(queries)

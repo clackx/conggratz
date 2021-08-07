@@ -251,7 +251,7 @@ def get_day_info(bday, locale, offset, count, debug=False):
     starttime = datetime.now()
 
     res_text = f'{get_dayname(bday, locale)} {get_translation("were born", locale)}:\n\n'
-    data = maindb.get_day_intro(bday, offset, count)
+    data = maindb.get_day_intro(bday, locale, offset, count)
     entities = sum(data, ())
     namelist = get_universal('sitelinks', entities, locale)
     desclist = get_universal('descriptions', entities, locale)
@@ -351,6 +351,7 @@ def get_flag(country, flagonly=False):
     if flagonly or country == 'CG':
         return emores
     return f'{emores} {country}'
+
 
 
 def check_tags(entities):
