@@ -1,6 +1,9 @@
+from gevent import monkey as curious_george
+curious_george.patch_all(thread=False, select=False)
 import telebot
 import cherrypy
 import config
+import handler
 from misc import bot
 import user
 import json
@@ -29,6 +32,7 @@ class WebhookServer(object):
                     user.what()
             else:
                 raise cherrypy.HTTPError(403)
+            return ''
         else:
             return "What?"
             # raise cherrypy.HTTPError(403)

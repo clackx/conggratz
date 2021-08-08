@@ -1,4 +1,5 @@
 import requests
+import grequests
 import json
 from datetime import datetime
 from telebot import types
@@ -49,50 +50,6 @@ def request_wiki_info(namelink, locale):
         info = '\n\n '.join(info.split('\n'))
         info = info.rstrip()
         return info
-
-
-def requestmany(prop_type, entities, locale):
-    """ Can request multiple entities of the same props type in chosen locale:
-    'labels' refers name of entity, 'descriptions' treats as short description
-    and 'sitelinks' returns wiki page title/name, sometimes similar to 'label' """
-    elogger.enter(f'** requestmany {str(entities)} {prop_type} {locale}')
-    url = 'https://www.wikidata.org/w/api.php'
-    params = {
-        'props': prop_type,
-        'languages': f'en|ru|{locale}',
-        'ids': '|'.join(entities),
-        'sitefilter': f'enwiki|ruwiki|{locale}wiki',
-        'action': 'wbgetentities',
-        'format': 'json'
-    }
-    is_good, r = please_request(url, params)
-
-    values = []
-    if is_good:
-        if 'error' in r:
-            elogger.warn(f"!! {r['error']['code']} :: {r['error']['info']}")
-        else:
-            for entity in entities:
-                # creating list of dictionaries
-                entry = r['entities'][entity][prop_type]
-
-                res_dict = {'en': None, 'ru': None, locale: None}
-                for key in (locale, 'en', 'ru'):
-                    if prop_type == 'sitelinks':
-                        keyname = key + 'wiki'
-                        fieldname = 'title'
-                    else:
-                        keyname = key
-                        fieldname = 'value'
-
-                    if keyname in entry:
-                        value = entry[keyname][fieldname]
-                        res_dict.update({key: value})
-
-                values.append(res_dict)
-
-    elogger.exiter('[OK]', str(values))
-    return values
 
 
 def get_notional_value(data_dict, locale):
@@ -417,8 +374,10 @@ def find_properties(wdid, locale):
     if is_good:
         claims = r['claims']
         props = claims.keys()
-        notable_props = []
-        result_dict = {}
+        result_dict = {}  # notable properties
+        reqs = []  # list of grequests
+        propses = []  # ordered list of props
+        bigdict = {}  # list of entities passed to grequests
         for prop in props:
             if prop not in ignorelist:
                 entities = [prop, ]
@@ -433,15 +392,35 @@ def find_properties(wdid, locale):
                             entities.append(entity)
 
                 if len(entities) > 1:
-                    worklist = requestmany('labels', entities[:49], locale)
-                    if worklist:
+                    url = f'https://www.wikidata.org/w/api.php?props=labels&languages=en|ru|{locale}' \
+                          f'&ids={"|".join(entities[:49])}&action=wbgetentities&format=json'
+                    reqs.append(grequests.get(url))
+                    propses.append(prop)
+                    bigdict[prop] = entities[:49]
+
+        if reqs:
+            propindx = -1
+            for request in grequests.map(reqs):
+                if request.status_code == 200:
+                    r = request.json()
+                    if 'error' in r:
+                        elogger.warn(f"!! {r['error']['code']} :: {r['error']['info']}")
+                    else:
+                        propindx += 1
+                        prop = propses[propindx]
+                        entities = bigdict[prop]
                         values = []
-                        for work in worklist:
-                            key, value = get_notional_value(work, locale)
+                        for entity in entities:
+                            entry = r['entities'][entity]['labels']
+                            loc_dict = {'en': None, 'ru': None, locale: None}
+                            for loc in (locale, 'en', 'ru'):
+                                if loc in entry:
+                                    value = entry[loc]['value']
+                                    loc_dict[loc] = value
+                            tmp, value = get_notional_value(loc_dict, locale)
                             if value not in values:
                                 values.append(value)
+
                         if len(values):
                             result_dict[prop] = values
-                            notable_props.append(prop)
-
-        return notable_props, result_dict
+        return result_dict
