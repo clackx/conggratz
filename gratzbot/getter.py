@@ -116,7 +116,7 @@ def get_notional_value(data_dict, locale):
 
 
 def get_universal(utypename, wdentities, locale):
-    """ most complicated function
+    """ most complicated function (with preloaded db becames pretty simple)
     it returns dictionary of entities with pair: {wdentity: (locale, value)}
     First gets *unidata*, db query with *wdentity* and *descr_cache* pairs,
     then starts assembling *result_dict*
@@ -134,37 +134,20 @@ def get_universal(utypename, wdentities, locale):
         if descr_cache:
             descr_dict = json.loads(descr_cache)
             full_dict[wdentity] = descr_dict
+            value = ''
             if locale in descr_dict:
-                # если ключ есть, реквест не нужен
-                key = locale
                 value = descr_dict[locale]
+
+            # preloaded db needs no outer requests
+            key = locale
+            if not value:
+                elogger.warn(f'{wdentity} has no {key} in {descr_dict}')
+                key, value = get_notional_value(descr_dict, locale)
                 if not value:
-                    elogger.warn(f'{wdentity} has no {key} in {descr_dict}')
-                    key, value = get_notional_value(descr_dict, locale)
-                    if not value:
-                        elogger.warn(f'{wdentity} has no description at all !!')
-                        value = '?? N/A ??'
+                    elogger.warn(f'{wdentity} has no description at all !!')
+                    value = '--nodata--'
 
-                result_dict[wdentity] = (key, value)
-
-    entities_to_request = []
-    for wdentity in wdentities:
-        if result_dict[wdentity] == (None, None):
-            entities_to_request.append(wdentity)
-
-    if len(entities_to_request):
-        elogger.debug('Need to request: ' + str(entities_to_request))
-        rlist = requestmany(utypename, entities_to_request, locale)
-        if rlist:
-            for i in range(0, len(entities_to_request)):
-                wdentity = entities_to_request[i]
-                full_dict[wdentity].update(rlist[i])
-
-                new_json = json.dumps(full_dict[wdentity], ensure_ascii=False)
-                maindb.set_universal(utypename, wdentity, new_json)
-
-                key, value = get_notional_value(full_dict[wdentity], locale)
-                result_dict[wdentity] = (key, value)
+            result_dict[wdentity] = (key, value)
 
     elogger.exiter('[OK]', result_dict)
     return result_dict

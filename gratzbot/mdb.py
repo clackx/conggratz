@@ -59,11 +59,6 @@ class Mdb:
         query = f'SELECT {locale}wde FROM presorted WHERE bday="{bdate}" LIMIT {count} OFFSET {offset}'
         return self.try_fetch(query, Mdb.ALL)
 
-    def get_names(self, bday):
-        elogger.enter(f'^^ get_names at {bday}')
-        query = f'SELECT links FROM people WHERE bdate="{bday}" LIMIT 0,10'
-        return self.try_fetch(query, Mdb.ALL)
-
     def get_ids_by_name(self, name):
         elogger.enter(f'^^ get_people {name}')
         query = f'SELECT wdentity FROM people WHERE links LIKE "%{name}%"'
@@ -83,17 +78,6 @@ class Mdb:
             'sitelinks':    f"SELECT wdentity, links FROM people WHERE wdentity IN {tuplestr}"
         }.get(utypename)
         return self.try_fetch(query, Mdb.ALL)
-
-    def set_universal(self, utypename, wdentity, desc_dict):
-        elogger.debug(f'set {utypename} {wdentity} :: {desc_dict}')
-        desc_dict = desc_dict.replace("'", "''")   # escaping a quote
-        queries = {
-            'labels': (f"INSERT OR IGNORE INTO occupations VALUES ('{wdentity}', null, null, null) ",
-                       f"UPDATE occupations SET descr_cache='{desc_dict}' WHERE occu_entity='{wdentity}'"),
-            'descriptions': (f"UPDATE people SET descrs='{desc_dict}' WHERE wdentity='{wdentity}'",),
-            'sitelinks': (f"UPDATE people SET links='{desc_dict}' WHERE wdentity='{wdentity}'",)
-        }.get(utypename)
-        return self.try_commit(queries)
 
     def get_photo(self, wdid):
         elogger.enter(f'^^ get_photo {wdid}')
