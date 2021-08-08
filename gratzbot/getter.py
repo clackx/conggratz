@@ -52,7 +52,7 @@ def request_wiki_info(namelink, locale):
         return info
 
 
-def get_notional_value(data_dict, locale):
+def get_notional_value(data_dict, locale, altale):
     """ Get *locale* key value from cached *data_dict*
     If locale value is empty, get value of default 'en'
     If default value is empty, get first non-empty """
@@ -60,7 +60,7 @@ def get_notional_value(data_dict, locale):
     if len(data_dict):
         value = data_dict.get(key)
         if not value:
-            key = 'en'
+            key = altale
             value = data_dict.get(key)
             if not value:
                 for key in data_dict.keys():
@@ -72,7 +72,7 @@ def get_notional_value(data_dict, locale):
     return key, value
 
 
-def get_universal(utypename, wdentities, locale):
+def get_universal(utypename, wdentities, locale, altale):
     """ most complicated function (with preloaded db becames pretty simple)
     it returns dictionary of entities with pair: {wdentity: (locale, value)}
     First gets *unidata*, db query with *wdentity* and *descr_cache* pairs,
@@ -99,7 +99,7 @@ def get_universal(utypename, wdentities, locale):
             key = locale
             if not value:
                 elogger.warn(f'{wdentity} has no {key} in {descr_dict}')
-                key, value = get_notional_value(descr_dict, locale)
+                key, value = get_notional_value(descr_dict, locale, altale)
                 if not value:
                     elogger.warn(f'{wdentity} has no description at all !!')
                     value = '--nodata--'
@@ -110,7 +110,7 @@ def get_universal(utypename, wdentities, locale):
     return result_dict
 
 
-def get_tags(wdentity, locale):
+def get_tags(wdentity, locale, altale):
     """ get tags from db as list of pairs (entity, emoji code),
     get from universe description labels for all entities,
     compile result *emores* as emoji chars and description """
@@ -120,7 +120,7 @@ def get_tags(wdentity, locale):
     entity_list = [en[0] for en in emojis_list]
     emoji_list = [em[1] for em in emojis_list]
 
-    desc_dict = get_universal('labels', entity_list, locale)
+    desc_dict = get_universal('labels', entity_list, locale, altale)
     emores = ''
     for i in range(0, len(entity_list)):
         l_tmp, descr = desc_dict.get(entity_list[i])
@@ -154,11 +154,11 @@ def get_first_emoji(emoji_str):
     return emoji
 
 
-def get_info(wdid, locale):
+def get_info(wdid, locale, altale):
     """ get all stuff (tags, text and keyboard) for person info card """
-    key, namelink = get_universal('sitelinks', [wdid], locale)[wdid]
+    key, namelink = get_universal('sitelinks', [wdid], locale, altale)[wdid]
     info = request_wiki_info(namelink, key)
-    tags = get_tags(wdid, locale)
+    tags = get_tags(wdid, locale, altale)
     text = f'<i>{tags}</i>\n\n{info}'
     if len(text) > 3896:
         text = text[:3896] + '...'
@@ -184,17 +184,18 @@ def get_day_plus(userid, bday, offset):
     """ get user session params to call *get_day_info* """
     elogger.enter(' ++++ MAIN')
     locale = user.load_param(userid, 'locale').get('primary')
+    altale = user.load_param(userid, 'locale').get('altern', 'en')
     keyboard = user.load_param(userid, 'keyboard')
     count = keyboard.get('entries')
     buttons = keyboard.get('keys')
     debug = True if userid == admin_id else False
-    text, names = get_day_info(bday, locale, offset, count, debug)
+    text, names = get_day_info(bday, locale, altale, offset, count, debug)
     keyboard = get_keyboard(names, buttons)
     elogger.exiter('[OK] MAIN', text)
     return text, keyboard
 
 
-def get_day_info(bday, locale, offset, count, debug=False):
+def get_day_info(bday, locale, altale, offset, count, debug=False):
     """ get full *bday* info with *count* entries from starting *offset*
      every entry contains name from namelist, tag (emoji + description)
      and short description from desclist """
@@ -204,8 +205,8 @@ def get_day_info(bday, locale, offset, count, debug=False):
     res_text = f'{get_dayname(bday, locale)} {get_translation("were born", locale)}:\n\n'
     data = maindb.get_day_intro(bday, locale, offset, count)
     entities = sum(data, ())
-    namelist = get_universal('sitelinks', entities, locale)
-    desclist = get_universal('descriptions', entities, locale)
+    namelist = get_universal('sitelinks', entities, locale, altale)
+    desclist = get_universal('descriptions', entities, locale, altale)
 
     check_tags(entities)
     data = maindb.get_emojis(entities)
@@ -286,11 +287,12 @@ def get_all_fav(userid):
     """ get all entries of favorites """
     elogger.enter(f'----- get_all_fav {userid}')
     locale = user.load_param(userid, 'locale').get('primary')
+    altale = user.load_param(userid, 'locale').get('altern', 'en')
     wdentities = sum(maindb.get_allfav(userid), ())
-    data = get_universal('sitelinks', wdentities, locale)
+    data = get_universal('sitelinks', wdentities, locale, altale)
     result = ''
     for wdid in wdentities:
-        result += data[wdid][1] + '\n'
+        result += f'{data[wdid][1]}\n'
     if not result:
         result = 'N/A'
     elogger.exiter(f'[OK]', result)
@@ -358,7 +360,7 @@ def check_tags(entities):
         maindb.set_entities(result_values)
 
 
-def find_properties(wdid, locale):
+def find_properties(wdid, locale, altale):
     """ future feature """
     ignorelist = ['P19', 'P20', 'P21', 'P22', 'P25', 'P26', 'P27', 'P31', 'P40', 'P53', 'P91',
                   'P102', 'P103', 'P106', 'P119', 'P140', 'P172', 'P184', 'P185', 'P358', 'P451',  # 'P361',
@@ -392,7 +394,7 @@ def find_properties(wdid, locale):
                             entities.append(entity)
 
                 if len(entities) > 1:
-                    url = f'https://www.wikidata.org/w/api.php?props=labels&languages=en|ru|{locale}' \
+                    url = f'https://www.wikidata.org/w/api.php?props=labels&languages=en|{locale}|{altale}' \
                           f'&ids={"|".join(entities[:49])}&action=wbgetentities&format=json'
                     reqs.append(grequests.get(url))
                     propses.append(prop)
@@ -413,11 +415,11 @@ def find_properties(wdid, locale):
                         for entity in entities:
                             entry = r['entities'][entity]['labels']
                             loc_dict = {'en': None, 'ru': None, locale: None}
-                            for loc in (locale, 'en', 'ru'):
+                            for loc in (locale, altale, 'en'):
                                 if loc in entry:
                                     value = entry[loc]['value']
                                     loc_dict[loc] = value
-                            tmp, value = get_notional_value(loc_dict, locale)
+                            tmp, value = get_notional_value(loc_dict, locale, altale)
                             if value not in values:
                                 values.append(value)
 

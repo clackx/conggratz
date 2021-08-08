@@ -48,6 +48,7 @@ def send_info(chat_id, incoming_message):
     After all, wikidata is requested for all notable properties """
     elogger.info(f'<< {chat_id} send_info {incoming_message}')
     locale = user.load_param(chat_id, 'locale').get('primary')
+    altale = user.load_param(chat_id, 'locale').get('altern', 'en')
     starttime = datetime.datetime.now()
     message_id = send_message(chat_id, '....')
     wdid = misc.search_entity(incoming_message)
@@ -57,11 +58,11 @@ def send_info(chat_id, incoming_message):
         link = '<a href="{}">&#8205;</a>'.format(getter.get_photo_link(wdid))
         edit_message(chat_id, message_id, '....\n' + link)
 
-        text, keyboard = getter.get_info(wdid, locale)
+        text, keyboard = getter.get_info(wdid, locale, altale)
         edit_message(chat_id, message_id, text + ' ' + link, markup=keyboard)
 
         # coming soon
-        props_dict = getter.find_properties(wdid, locale)
+        props_dict = getter.find_properties(wdid, locale, altale)
         for prop in props_dict.keys():
             text = f'{props_dict[prop][0].capitalize()}:\n'  # f'({prop})\n'
             for value in props_dict[prop][1:]:
