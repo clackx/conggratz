@@ -201,32 +201,38 @@ def get_day_info(bday, locale, altale, offset, count, debug=False):
      and short description from desclist """
     elogger.enter(f'----- get_today {bday}, {count} items')
     starttime = datetime.now()
-
+    res_names = []
+    is_end = False
     res_text = f'{get_dayname(bday, locale)} {get_translation("were born", locale)}:\n\n'
     data = maindb.get_day_intro(bday, locale, offset, count)
-    entities = sum(data, ())
-    namelist = get_universal('sitelinks', entities, locale, altale)
-    desclist = get_universal('descriptions', entities, locale, altale)
+    entities = []
+    for entity in data:
+        if entity[0]:
+            entities += entity
+    if entities:
+        namelist = get_universal('sitelinks', entities, locale, altale)
+        desclist = get_universal('descriptions', entities, locale, altale)
+        check_tags(entities)
+        data = maindb.get_emojis(entities)
+        tagdixt = {}
+        for wde, emojis in data:
+            emores = get_emoji_chars(emojis)
+            tagdixt.setdefault(wde, '')
+            tagdixt[wde] += emores + '•'
+        for wdentity in entities:
+            if wdentity:
+                l_tmp, name = namelist[wdentity]
+                l_tmp, desc = desclist[wdentity]
+                flag = get_person_flag(wdentity)
+                tag = tagdixt.get(wdentity, chr(8265))
+                ftag = get_first_emoji(tag)
+                if tag == chr(8265):
+                    elogger.warn(f'{wdentity} ({name}) has no tags')
+                res_names.append(name)
+                res_text += f' {flag}{ftag} : : {name}\n{desc}\n\n'
 
-    check_tags(entities)
-    data = maindb.get_emojis(entities)
-    tagdixt = {}
-    for wde, emojis in data:
-        emores = get_emoji_chars(emojis)
-        tagdixt.setdefault(wde, '')
-        tagdixt[wde] += emores + '•'
-
-    res_names = []
-    for wdentity in entities:
-        l_tmp, name = namelist[wdentity]
-        l_tmp, desc = desclist[wdentity]
-        flag = get_person_flag(wdentity)
-        tag = tagdixt.get(wdentity, chr(8265))
-        ftag = get_first_emoji(tag)
-        if tag == chr(8265):
-            elogger.warn(f'{wdentity} ({name}) has no tags')
-        res_names.append(name)
-        res_text += f' {flag}{ftag} : : {name}\n{desc}\n\n'
+    if count > len(entities):
+        res_text += '      ~~ endofdata ~~'
 
     endtime = datetime.now()
     stata = "<code>Spend {}s to request</code>".format((endtime - starttime).total_seconds())
@@ -240,9 +246,23 @@ def get_keyboard(names, buttons):
     elogger.debug(f'get_keyboard {str(names)[:100]}')
     button = types.KeyboardButton
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    is_odd = True if (len(names) % 2) != 0 else False
+    is_end = False
+    if len(names) < buttons:
+        buttons = len(names) if not is_odd else len(names)-1
+        is_end = True
+
     for i in range(0, int(buttons), 2):
         markup.add(button(text=names[i]), button(text=names[i + 1]))
-    markup.add(button(text="<<RW"), button(text="FW>>"))
+
+    if not is_end:
+        markup.add(button(text="<<RW"), button(text="FW>>"))
+    else:
+        if is_odd:
+            markup.add(button(text=names[i+2]), button(text="<<RW"))
+        else:
+            markup.add(button(text="<<RW"))
+
     return markup
 
 
@@ -270,7 +290,7 @@ def get_photo_link(wdid):
 def get_acc_info(userid):
     """ get user settings localized info """
     locale = user.load_param(userid, 'locale').get('primary')
-    altale = user.load_param(userid, 'locale').get('altern')
+    altale = user.load_param(userid, 'locale').get('altern', 'en')
     keyb = user.load_param(userid, 'keyboard')
     spaces = len(get_translation('number of entries', locale)) + 1
     res_str = f"{get_translation('config', locale)}:\n"
