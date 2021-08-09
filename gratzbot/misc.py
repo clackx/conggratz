@@ -40,27 +40,33 @@ def search_entity(search_str):
     if request of *search_str* returns nothing, it splits into words,
     then it's queries every word and finds entity in every queries
     result list of entities goes to *get_unequivocal_wdid* """
-    ids = sum(maindb.get_ids_by_name(search_str), ())
-    if ids:
+    ids = maindb.get_ids_by_name(search_str)
+    if len(ids):
         if len(ids) == 1:
-            wdid = ids[0]
+            wdid = ids[0][0]
         else:
-            wdid = maindb.get_unequivocal_wdid(ids)
+            id_list = []
+            for id in ids:
+                id_list += id
+            wdid = maindb.get_unequivocal_wdid(id_list)
     else:
         search_str = re.sub("[(\[].*?[)\]]", "", search_str)  # remove all in brackets
         search_str = re.sub(r"[-()\]\[\"'#/@;:<>{}`+=~|.!?,$]", " ", search_str)  # remove symbols
         prev_list = []
         for word in search_str.split():
-            ids = sum(maindb.get_ids_by_name(word.capitalize()), ())
+            ids = set()
+            ids_data = maindb.get_ids_by_name(word.capitalize())
+            for _id in ids_data:
+                ids.add(_id[0])
             if len(ids) == 0:
                 continue
             if not prev_list:  # first run
                 prev_list = ids
             else:
-                res_list = []
+                res_list = set()
                 for _id in ids:
                     if _id in prev_list:
-                        res_list.append(_id)
+                        res_list.add(_id)
                 prev_list = res_list
 
         if prev_list:
@@ -69,7 +75,6 @@ def search_entity(search_str):
             wdid = None
 
     return wdid
-
 
 def birthday_from_offset(offset):
     """" returns mm.dd string with day offset relative day today """
