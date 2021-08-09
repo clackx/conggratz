@@ -1,9 +1,6 @@
 from datetime import datetime
 from babel.dates import format_skeleton
 
-ENGLISH = 'en'
-SLOVAK = 'sk'
-
 MESSAGES = {
     'were born':
         {'ru': 'родились',
@@ -13,6 +10,7 @@ MESSAGES = {
          'en': 'were born',
          'de': 'wurden geboren',
          'es': 'nació',
+         'it': 'nacquero',
          'fr': 'sont nés',
          'zh': '出生',
          'ko': '일생',
@@ -25,6 +23,7 @@ MESSAGES = {
          'kk': 'Tіл',
          'de': 'Sprache',
          'es': 'Idioma',
+         'it': 'Lingua',
          'fr': 'Langue',
          'zh': '語',
          'ko': '언어',
@@ -38,6 +37,7 @@ MESSAGES = {
          'de': 'Tastatur',
          'es': 'Teclado',
          'fr': 'Clavier',
+         'it': 'Tastiera',
          'zh': '鍵盤',
          'ko': '건반',
          'ja': 'キーボード'
@@ -50,6 +50,7 @@ MESSAGES = {
          'de': 'Aufbau',
          'es': 'Configuración',
          'fr': 'Configuration',
+         'it': 'Configurazione',
          'zh': '配置',
          'ko': '구성',
          'ja': '構成'
@@ -62,6 +63,7 @@ MESSAGES = {
          'de': 'Benachrichtigungen',
          'es': 'Notificaciones',
          'fr': 'Notifications',
+         'it': 'Avvisi',
          'zh': '通知',
          'ko': '알림',
          'ja': '通知'
@@ -74,6 +76,7 @@ MESSAGES = {
          'de': 'Meine Favoriten',
          'es': 'Mis favoritos',
          'fr': 'Mes favoris',
+         'it': 'I miei preferiti',
          'zh': '我最喜歡的',
          'ko': '내가 좋아하는 것들',
          'ja': '私のお気に入り'
@@ -86,6 +89,7 @@ MESSAGES = {
          'de': 'Art',
          'es': 'Escribe',
          'fr': 'Taper',
+         'it': 'Tipo',
          'zh': '類型',
          'ko': '유형',
          'ja': 'タイプ'
@@ -98,6 +102,7 @@ MESSAGES = {
          'de': 'Anzahl der Schlüssel',
          'es': 'Número de llaves',
          'fr': 'Nombre de clés',
+         'it': 'Numero di pulsanti',
          'zh': '按鍵數',
          'ko': '키 수',
          'ja': 'キーの数'
@@ -110,6 +115,7 @@ MESSAGES = {
          'de': 'Anzahl der Einträge',
          'es': 'Número de registros',
          'fr': 'Nombre d''enregistrements',
+         'it': 'Numero di record',
          'zh': '記錄數',
          'ko': '레코드 수',
          'ja': 'レコード数'
@@ -122,6 +128,7 @@ MESSAGES = {
          'de': 'Wert der Verschiebung',
          'es': 'Cantidad de turno',
          'fr': 'Montant du décalage',
+         'it': 'Importo spostamento',
          'zh': '移位量',
          'ko': '시프트 금액',
          'ja': 'シフト量'
@@ -135,6 +142,7 @@ MESSAGES = {
          'de': 'Herausragende Werke',
          'es': 'Obras destacadas',
          'fr': 'œuvres remarquables',
+         'it': 'Lavoro significativo',
          'zh': '主要作品',
          'ko': '대표 작품',
          'ja': '主要作品'
@@ -147,6 +155,7 @@ MESSAGES = {
          'de': 'Einstellen',
          'es': 'Ajustado a',
          'fr': 'Mis à',
+         'it': 'Installato',
          'zh': '设置',
          'ko': '로 설정',
          'ja': 'に設定'
@@ -159,6 +168,7 @@ MESSAGES = {
          'de': 'Zu Favoriten hinzugefügt',
          'es': 'Ya en favoritos',
          'fr': 'Ajouté aux favoris',
+         'it': 'Aggiunto ai preferiti',
          'zh': '添加到收藏夹',
          'ko': '즐겨 찾기에 추가',
          'ja': 'お気に入りに追加'
@@ -171,6 +181,7 @@ MESSAGES = {
          'de': 'Schon in Favoriten',
          'es': 'Añadido a favoritos',
          'fr': 'Déjà dans les favoris',
+         'it': 'Già nei preferiti',
          'zh': '已经收藏',
          'ko': '이미 즐겨 찾기에',
          'ja': 'すでにお気に入りに'
@@ -183,14 +194,19 @@ MESSAGES = {
          'de': 'Nicht gefunden',
          'es': 'Extraviado',
          'fr': 'Pas trouvé',
+         'it': 'Non trovato',
          'zh': '未找到',
          'ko': '찾을 수 없음',
          'ja': '見つかりません'
          },
     'ON':
-        {'ru': 'Вкл'},
+        {'ru': 'Вкл',
+         'it': 'Su',
+         },
     'OFF':
-        {'ru': 'Выкл'},
+        {'ru': 'Выкл',
+         'it': 'Spento'
+         },
     'OK thanks, remember':
         {'ru': 'ОК спасибо, записал',
          'be': 'OK дзякуй, запісаў',
@@ -199,6 +215,7 @@ MESSAGES = {
          'de': 'OK, danke, denk dran',
          'es': 'OK gracias, recuerda',
          'fr': 'OK merci, notez-le',
+         'it': 'Ok grazie, scrivilo',
          'zh': '好，谢谢，写下来',
          'ko': '좋아, 적어',
          'ja': 'OKありがとう、書き留めた'
@@ -211,6 +228,7 @@ MESSAGES = {
          'de': 'Gestern',
          'es': 'Ayer',
          'fr': 'Hier',
+         'it': 'Ieri',
          'zh': '昨天',
          'ko': '어제',
          'ja': '昨日'
@@ -223,6 +241,7 @@ MESSAGES = {
          'de': 'Heute',
          'es': 'Hoy dia',
          'fr': 'Aujourd''hui',
+         'it': 'Oggi',
          'zh': '今天',
          'ko': '오늘',
          'ja': '今日'
@@ -235,6 +254,7 @@ MESSAGES = {
          'de': 'Morgen',
          'es': 'Mañana',
          'fr': 'Demain',
+         'it': 'Domani',
          'zh': '明天',
          'ko': '내일',
          'ja': '明日'
@@ -247,6 +267,7 @@ MESSAGES = {
          'de': 'Ein anderer Tag',
          'es': 'Otro día',
          'fr': 'Un autre jour',
+         'it': 'Un altro giorno',
          'zh': '另一天',
          'ko': '다른 날',
          'ja': '別の日'
@@ -259,6 +280,7 @@ MESSAGES = {
          'de': 'Information',
          'es': 'Información',
          'fr': 'Informations',
+         'it': 'Informazione',
          'zh': '信息',
          'ko': '정보',
          'ja': '情報'
@@ -271,6 +293,7 @@ MESSAGES = {
          'de': 'Hauptmenü',
          'es': 'Menú principal',
          'fr': 'Menu principal',
+         'it': 'Menu principale',
          'zh': '主菜单',
          'ko': '메인 메뉴',
          'ja': 'メインメニュー'
@@ -283,6 +306,7 @@ MESSAGES = {
          'de': 'Über',
          'es': 'Sobre',
          'fr': 'À propos',
+         'it': 'Di',
          'zh': '关于',
          'ko': '약',
          'ja': '約'
@@ -296,6 +320,7 @@ MESSAGES = {
          'de': 'Geben Sie das Datum im Format ein',
          'es': 'Ingrese la fecha en el formato',
          'fr': 'Entrez la date au format',
+         'it': 'Inserisci la data nel formato',
          'zh': '以格式输入日期',
          'ko': '형식으로 날짜를 입력하십시오',
          'ja': '形式で日付を入力します'
@@ -308,6 +333,7 @@ MESSAGES = {
          'de': 'Rezension',
          'es': 'Revisar',
          'fr': 'Revoir',
+         'it': 'Recensione',
          'zh': '审查',
          'ko': '리뷰',
          'ja': 'レビュー'
@@ -321,6 +347,7 @@ MESSAGES = {
          'de': 'Ich wäre dankbar für ehrliches Feedback',
          'es': 'Agradecería una revisión honesta',
          'fr': 'Je serais reconnaissant pour vos commentaires honnêtes',
+         'it': 'Sarei grato per una recensione onesta',
          'zh': '真诚的反馈我将不胜感激',
          'ko': '솔직한 피드백에 감사드립니다',
          'ja': '正直なフィードバックをいただければ幸いです'
@@ -338,7 +365,7 @@ MESSAGES = {
                "научусь осторожно советовать тебе других людей твоего круга интересов, о которых ты мог забыть или "
                "не знаешь.\n Если ты нашёл ошибку в переводе, странность в работе или что-то вызвало твои негативные "
                "чувства, просто напиши об этом в Отзыв.\n Надеюсь на плодотворное сотрудничество! ",
-         'ua': "Привіт! \n Я можу розповідати тобі кожен день про людей, які внесли значний вклад в свою область "
+         'uk': "Привіт! \n Я можу розповідати тобі кожен день про людей, які внесли значний вклад в свою область "
                "діяльності. \n Якщо ти додаси когось в обране, я буду повідомляти тебе напередодні дня його "
                "народження, щоб ти зміг згадати про його працях і віддячити своєю увагою. \n З часом я навчуся "
                "обережно радити тобі інших людей твого кола інтересів, про які ти міг забути або не знаєш. \n Якщо ти "
@@ -402,6 +429,7 @@ MESSAGES = {
          'DE': 'U+1F1E9 U+1F1EA',
          'ES': 'U+1F1EA U+1F1F8',
          'FR': 'U+1F1EB U+1F1F7',
+         'IT': 'U+1F1EE U+1F1F9',
          'ZH': 'U+1F1E8 U+1F1F3',
          'KO': 'U+1F1F0 U+1F1F7',
          'JA': 'U+1F1EF U+1F1F5',
@@ -427,4 +455,4 @@ def get_values(key):
 
 
 def get_dayname(bday, locale):
-    return format_skeleton('MMMMd', datetime.strptime(bday+'.80', '%m.%d.%y'), locale=locale)
+    return format_skeleton('MMMMd', datetime.strptime(bday + '.80', '%m.%d.%y'), locale=locale)

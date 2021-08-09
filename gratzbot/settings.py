@@ -56,9 +56,9 @@ def settings(chat_id, rtype, message=''):
 
     elif rtype == 2:
         state = user.load_param(chat_id, 'session').get('state', 0)
-        btn_list = ((get_flag('RU'), get_flag('UK'), get_flag('BE'), get_flag('KK')),
-                    (get_flag('EN'), get_flag('DE'), get_flag('ES'), get_flag('FR')),
-                    (get_flag('ZH'), get_flag('KO'), get_flag('JA'), get_flag('CG')))
+        btn_list = ((get_flag('RU'), get_flag('FR'), get_flag('UK'), get_flag('ZH')),
+                    (get_flag('EN'), get_flag('ES'), get_flag('BE'), get_flag('KO')),
+                    (get_flag('DE'), get_flag('IT'), get_flag('KK'), get_flag('JA')))
         if message == '':
             text = get_translation('locale', locale).capitalize()
             user.update_param(chat_id, 'session', {'state': 0})
