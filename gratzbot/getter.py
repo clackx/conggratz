@@ -98,7 +98,7 @@ def get_universal(utypename, wdentities, locale, altale):
             # preloaded db needs no outer requests
             key = locale
             if not value:
-                elogger.warn(f'{wdentity} has no {key} in {descr_dict}')
+                elogger.warn(f'{wdentity} has no {key} in {utypename}')
                 key, value = get_notional_value(descr_dict, locale, altale)
                 if not value:
                     elogger.warn(f'{wdentity} has no description at all !!')
