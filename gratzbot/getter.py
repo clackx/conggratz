@@ -270,11 +270,14 @@ def get_photo_link(wdid):
 def get_acc_info(userid):
     """ get user settings localized info """
     locale = user.load_param(userid, 'locale').get('primary')
+    altale = user.load_param(userid, 'locale').get('altern')
     keyb = user.load_param(userid, 'keyboard')
     spaces = len(get_translation('number of entries', locale)) + 1
     res_str = f"{get_translation('config', locale)}:\n"
     res_str += f"<code>{(get_translation('language', locale) + ':').ljust(spaces)}  " \
                f"{locale}  {get_flag(locale, flagonly=True)}\n"
+    res_str += f"╰{(' ALT ' + get_translation('language', altale) + ':').ljust(spaces)} " \
+               f"{altale}  {get_flag(altale, flagonly=True)} \n"
     res_str += f"{get_translation('keyboard', locale)}:\n"
     res_str += f"├{(get_translation('type', locale) + ':').ljust(spaces)} {keyb.get('type')} \n"
     res_str += f"├{(get_translation('number of keys', locale) + ':').ljust(spaces)} {keyb.get('keys')} \n"

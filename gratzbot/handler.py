@@ -96,7 +96,7 @@ def docall(message):
 @bot.message_handler(regexp='^.{2} (RU|BE|UK|KK|EN|DE|ES|FR|ZH|KO|JA)$')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT LOCALE {message.text[3:]}')
-    settings.settings(message.chat.id, 2, message.text[3:])
+    settings.settings(message.chat.id, 2, '*'+message.text[3:])
 
 
 @bot.message_handler(regexp='^(RU|BE|UK|KK|EN|DE|ES|FR|ZH|KO|JA)$')

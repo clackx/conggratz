@@ -18,8 +18,8 @@ def _set_settings(user_id, settings):
     maindb.set_user(user_id, json.dumps(settings))
 
 
-def _init_user(user_id, locale='ru', day='04.01'):
-    settings = {'locale': {'primary': locale},
+def _init_user(user_id, locale='ru', altale='en', day='04.01'):
+    settings = {'locale': {'primary': locale, 'altern': altale},
                 'keyboard': {'keys': 4, 'entries': 6, 'step': 4, 'type': 'regular'},
                 'session': {'message_id': 1, 'offset': 0, 'state': 0, 'bday': day}}
     _set_settings(user_id, settings)
@@ -28,18 +28,26 @@ def _init_user(user_id, locale='ru', day='04.01'):
 
 def start(from_user):
     user_id = from_user.id
-    uname = from_user.username
-    locale = from_user.language_code if from_user.language_code else 'ru'
-    fname = from_user.first_name if from_user.first_name else ''
-    lname = from_user.last_name if from_user.last_name else ''
-    flname = f'{fname} {lname}'.lstrip().rstrip()
-    nowtime = datetime.datetime.now()
-    ident_dict = {'locale': locale, 'uname': uname, 'flname': flname, 'regtime': int(nowtime.strftime('%s'))}
-    if locale not in ('en', 'ru', 'be', 'uk', 'kk', 'de', 'es', 'fr', 'zh', 'ko', 'ja', 'it'):  # TODO check *it*
-        locale = 'ru'
-    _init_user(user_id, locale, nowtime.strftime('%m.%d'))
-    maindb.ident_user(user_id, json.dumps(ident_dict, ensure_ascii=False))
-    elogger.preinfo(f'__ {from_user.id} INF JOIN US AS @{uname} :: {flname}, {locale}')
+    if not memdb.settings(user_id):
+        uname = from_user.username
+        locale = from_user.language_code if from_user.language_code else '--'
+        fname = from_user.first_name if from_user.first_name else ''
+        lname = from_user.last_name if from_user.last_name else ''
+        flname = f'{fname} {lname}'.lstrip().rstrip()
+        nowtime = datetime.datetime.now()
+        ident_dict = {'locale': locale, 'uname': uname, 'flname': flname, 'regtime': int(nowtime.strftime('%s'))}
+
+        locales_list = ['en', 'ru', 'be', 'uk', 'kk', 'de', 'fr', 'es', 'it', 'zh', 'ko', 'ja']
+        if locale not in locales_list:
+            locale = 'ru'
+        if locale in ['be', 'uk', 'kk']:
+            altale = 'ru'
+        else:
+            altale = 'en'
+
+        _init_user(user_id, locale, altale, nowtime.strftime('%m.%d'))
+        maindb.ident_user(user_id, json.dumps(ident_dict, ensure_ascii=False))
+        elogger.preinfo(f'__ {from_user.id} INF JOIN US AS @{uname} :: {flname}, {locale}')
 
 
 def load_param(userid, param):

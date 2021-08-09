@@ -55,16 +55,31 @@ def settings(chat_id, rtype, message=''):
             btn_list = 'menu'
 
     elif rtype == 2:
+        state = user.load_param(chat_id, 'session').get('state', 0)
+        btn_list = ((get_flag('RU'), get_flag('UK'), get_flag('BE'), get_flag('KK')),
+                    (get_flag('EN'), get_flag('DE'), get_flag('ES'), get_flag('FR')),
+                    (get_flag('ZH'), get_flag('KO'), get_flag('JA'), get_flag('CG')))
         if message == '':
-            text = 'Choose locale:'
-            btn_list = ((get_flag('RU'), get_flag('UK'), get_flag('BE'), get_flag('KK')),
-                        (get_flag('EN'), get_flag('DE'), get_flag('ES'), get_flag('FR')),
-                        (get_flag('ZH'), get_flag('KO'), get_flag('JA'), get_flag('CG')))
+            text = get_translation('locale', locale).capitalize()
+            user.update_param(chat_id, 'session', {'state': 0})
         else:
-            locale = message.lower()
-            user.update_param(chat_id, 'locale', {'primary': locale})
-            text = get_flag(locale, flagonly=True)
-            btn_list = 'menu'
+            if message[0] != '*':
+                choise = message.lower()
+                user.update_param(chat_id, 'locale', {'primary': choise})
+                send_message(chat_id, get_flag(choise, flagonly=True))
+                return
+            else:
+                choise = message[1:].lower()
+                if state == 0:
+                    user.update_param(chat_id, 'locale', {'primary': choise})
+                    user.update_param(chat_id, 'session', {'state': 1})
+                    text = get_translation('altale', locale).capitalize()
+                else:
+                    user.update_param(chat_id, 'locale', {'altern': choise})
+                    user.update_param(chat_id, 'session', {'state': 0})
+                    text = get_acc_info(chat_id)
+                    btn_list = 'menu'
+            send_message(chat_id, get_flag(choise, flagonly=True))
 
     elif rtype == 3:
         btn_list = 'menu'

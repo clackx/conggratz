@@ -356,7 +356,7 @@ MESSAGES = {
                ' Главное меню вызывается по команде /menu, помощь /help',
          'en': ' If Russian is not your native language, send en or EN\n Аlso languages can be selected in '
                'the settings /set.\n The main menu is called by the command /menu, help by /help'
-        },
+         },
     'helptext':
         {'ru': 'В режиме просмотра дня рождений навигация осуществляется по кнопкам FW&gt;&gt; (вперёд) или &lt;&lt;RW'
                ' (назад).\n Если вы что-то вводили с клавиатуры, телеграм скроет (свернёт) кнопки. Вернуть их можно,'
@@ -367,6 +367,32 @@ MESSAGES = {
                'you can return them by clicking on the icon with four squares that looks like [: :]\n If something '
                'remains unclear, you can ask me a question in PM @clackx'
          },
+    'locale':
+        {"en": "choose main locale",
+         "ru": "выберите основную локаль",
+         "be": "выберыце асноўную лакаль",
+         "uk": "виберіть основну локаль",
+         "kk": "Тілді негізгі таңдаңыз",
+         "de": "wählen Sie das primäre Gebietsschema",
+         "fr": "choisissez votre langue principale",
+         "es": "elija la lingua principale",
+         "it": "scegli la lingua primaria",
+         "zh": "选择您的主要语言",
+         "ko": "기본 언어를 선택하십시오",
+         "ja": "あなたの第一言語を選択してください"},
+    'altale':
+        {"en": "choose alternative locale",
+         "ru": "выберите альтернативную локаль",
+         "be": "выберыце альтэрнатыўную лакаль",
+         "uk": "виберіть альтернативну локаль",
+         "kk": "Тілді балама таңдаңыз",
+         "de": "wählen Sie ein alternatives Gebietsschema",
+         "fr": "choisir la langue alternative",
+         "es": "elige la lingua alternativa",
+         "it": "scegli la lingua alternativa",
+         "zh": "选择替代语言",
+         "ko": "대체 언어를 선택",
+         "ja": "代替言語を選択してください"},
     'flags':
         {'RU': 'U+1F1F7 U+1F1FA',
          'BE': 'U+1F1E7 U+1F1FE',
