@@ -272,9 +272,10 @@ def get_inline_keyboard(wdid, name, locale):
     name = name.replace(u'\u2019', '%E2%80%99')
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     info_btn = types.InlineKeyboardButton(text=u'\U0001F497' + " Like", callback_data=f'like_{wdid}')
-    more_btn = types.InlineKeyboardButton(text=u'\U0001F9E0' + " More..",
+    more_btn = types.InlineKeyboardButton(text=u'\U0001F9E0' + " More..", callback_data=f'more_{wdid}')
+    wiki_btn = types.InlineKeyboardButton(text=u'\U0001F310' + " Wiki",
                                           url=f'https://{locale}.m.wikipedia.org/wiki/{name}')
-    keyboard.row(info_btn, more_btn)
+    keyboard.row(info_btn, more_btn, wiki_btn)
     return keyboard
 
 

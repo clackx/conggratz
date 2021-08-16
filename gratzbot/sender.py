@@ -4,6 +4,7 @@ import datetime
 from time import sleep
 import getter
 from misc import bot, randpicture, search_entity
+from config import admin_id
 import user
 import elogger
 from messages import get_translation
@@ -50,7 +51,8 @@ def send_info(chat_id, incoming_message):
     altale = user.load_param(chat_id, 'locale').get('altern', 'en')
     starttime = datetime.datetime.now()
     message_id = send_message(chat_id, '....')
-    wdid = misc.search_entity(incoming_message)
+    wdid = search_entity(incoming_message)
+    stata = ''
     if wdid is None:
         edit_message(chat_id, message_id, get_translation('not found', locale))
     else:
@@ -58,19 +60,25 @@ def send_info(chat_id, incoming_message):
         edit_message(chat_id, message_id, '....\n' + link)
 
         text, keyboard = getter.get_info(wdid, locale, altale)
-        edit_message(chat_id, message_id, text + ' ' + link, markup=keyboard)
+        endtime = datetime.datetime.now()
+        stata = '<code>Spend {}s to request</code>'.format((endtime - starttime).total_seconds())
+        s = '\n\n' + stata if chat_id == admin_id else ''
+        edit_message(chat_id, message_id, text + s + ' ' + link, markup=keyboard)
 
-        # coming soon
-        props_dict = getter.find_properties(wdid, locale, altale)
-        for prop in props_dict.keys():
-            text = f'{props_dict[prop][0].capitalize()}:\n'  # f'({prop})\n'
-            for value in props_dict[prop][1:]:
-                text += f'• {value} \n'
-            # придётся избавиться от этой красоты
-            send_message(chat_id, text)
-    endtime = datetime.datetime.now()
-    elogger.exiter(f'[OK] {chat_id} send_info {wdid}',
-                   'Spend {}s to request'.format((endtime - starttime).total_seconds()))
+    elogger.exiter(f'[OK] {chat_id} send_info {wdid}', result=stata)
+
+
+def send_more(chat_id, wdid, query_id):
+    locale = user.load_param(chat_id, 'locale').get('primary')
+    altale = user.load_param(chat_id, 'locale').get('altern', 'en')
+    props_dict = getter.find_properties(wdid, locale, altale)
+    for prop in props_dict.keys():
+        text = f'{props_dict[prop][0].capitalize()}:\n'
+        if chat_id == admin_id: text = text[:-1] + f' ({prop})\n'
+        for value in props_dict[prop][1:]:
+            text += f'• {value} \n'
+        send_message(chat_id, text)
+    bot.answer_callback_query(query_id)
 
 
 def save_liked(chat_id, wdid, query_id):

@@ -177,3 +177,5 @@ def docall(query):
     wdid = query.data[5:]
     if button == 'like':
         sender.save_liked(query.message.chat.id, wdid, query.id)
+    if button == 'more':
+        sender.send_more(query.message.chat.id, wdid, query.id)
