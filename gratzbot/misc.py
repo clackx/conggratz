@@ -73,23 +73,11 @@ def search_entity(search_str):
             wdid = maindb.get_unequivocal_wdid(prev_list)
         else:
             wdid = None
-
     return wdid
+
 
 def birthday_from_offset(offset):
     """" returns mm.dd string with day offset relative day today """
     result_stamp = int(datetime.datetime.now().strftime('%s')) + 60 * 60 * 24 * offset
     result = datetime.datetime.fromtimestamp(result_stamp).strftime('%m.%d')
     return result
-
-
-def parseday(message):
-    """ parses dd.mm or mm.dd string to return in mm.dd format """
-    try:
-        if '.' in message:
-            tstamp = datetime.datetime.strptime(message, '%d.%m')
-        if '-' in message:
-            tstamp = datetime.datetime.strptime(message, '%m-%d')
-    except ValueError:
-        return False
-    return tstamp.strftime('%m.%d')

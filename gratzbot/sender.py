@@ -3,8 +3,7 @@ import requests
 import datetime
 from time import sleep
 import getter
-from misc import bot, randpicture
-import misc
+from misc import bot, randpicture, search_entity
 import user
 import elogger
 from messages import get_translation
@@ -106,8 +105,18 @@ def send_anotherdaytext(chat_id):
 
 
 def parseday(chat_id, message):
-    """ calls send_greetz_brief if parsing message to bday is correct """
-    bday = misc.parseday(message)
+    """ parses dd.mm or mm.dd string to return in mm.dd format then
+    calls send_greetz_brief if parsing message to bday is correct """
+    tstamp = ''
+    try:
+        if '.' in message:
+            tstamp = datetime.datetime.strptime(message, '%d.%m')
+        if '-' in message:
+            tstamp = datetime.datetime.strptime(message, '%m-%d')
+    except ValueError:
+        pass
+
+    bday = tstamp.strftime('%m.%d')
     if bday:
         send_gratz_brief(chat_id, bday)
     else:
