@@ -299,7 +299,7 @@ MESSAGES = {
          'ja': 'メインメニュー'
          },
     'about':
-        {'ru': 'Про',
+        {'ru': 'О',
          'be': 'Пра',
          'uk': 'Про',
          'kk': 'Туралы',
@@ -379,7 +379,7 @@ MESSAGES = {
                "пачуцці, проста напішы пра гэта ў Водгук. \n Спадзяюся на плённае супрацоўніцтва!",
          },
     'rugreetz':
-        {'ru': ' Если твой язык русский, отправь ru или RU.\n Также язык можно выбрать в нстройках /set.\n'
+        {'ru': ' Если твой язык русский, отправь ru или RU.\n Также язык можно выбрать в настройках /set.\n'
                ' Главное меню вызывается по команде /menu, помощь /help',
          'en': ' If Russian is not your native language, send en or EN\n Аlso languages can be selected in '
                'the settings /set.\n The main menu is called by the command /menu, help by /help'
@@ -452,6 +452,11 @@ def get_values(key):
     for value in MESSAGES[key].values():
         result.append(value)
     return result
+
+
+def re_join(key, additional=[]):
+    values = get_values(key) + additional
+    return '^(' + '|'.join(values) + ')$'
 
 
 def get_dayname(bday, locale):

@@ -1,7 +1,7 @@
 import settings
 from misc import bot, birthday_from_offset
 import sender
-from messages import get_values
+from messages import re_join
 import elogger
 import user
 
@@ -18,7 +18,7 @@ def docall(message):
 
 
 @bot.message_handler(commands=["menu"])
-@bot.message_handler(regexp=('|'.join(get_values('main menu') + ['menu', 'меню']).replace(' ', '.')))
+@bot.message_handler(regexp=(re_join('main menu', ['menu', 'меню'])))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV command /menu')
     settings.settings(message.chat.id, 4)
@@ -26,7 +26,7 @@ def docall(message):
 
 @bot.message_handler(commands=["settings"])
 @bot.message_handler(commands=["set"])
-@bot.message_handler(regexp='|'.join(get_values('config')))
+@bot.message_handler(regexp=re_join('config'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV command /set')
     settings.settings(message.chat.id, 0)
@@ -39,7 +39,7 @@ def docall(message):
 
 
 @bot.message_handler(commands=["day"])
-@bot.message_handler(regexp='|'.join(get_values('today')))
+@bot.message_handler(regexp=re_join('today'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF TODAY')
     sender.send_gratz_brief(message.chat.id, birthday_from_offset(0))
@@ -48,19 +48,19 @@ def docall(message):
 """ day section """
 
 
-@bot.message_handler(regexp='|'.join(get_values('tomorrow')))
+@bot.message_handler(regexp=re_join('tomorrow'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF TOMORROW')
     sender.send_gratz_brief(message.chat.id, birthday_from_offset(1))
 
 
-@bot.message_handler(regexp='|'.join(get_values('yesterday')))
+@bot.message_handler(regexp=re_join('yesterday'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF YESTERDAY')
     sender.send_gratz_brief(message.chat.id, birthday_from_offset(-1))
 
 
-@bot.message_handler(regexp='|'.join(get_values('another day')))
+@bot.message_handler(regexp=re_join('another day'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF OTHERDAY')
     sender.send_anotherdaytext(message.chat.id)
@@ -75,7 +75,7 @@ def docall(message):
 """ settings section """
 
 
-@bot.message_handler(regexp='|'.join(get_values('keyboard')))
+@bot.message_handler(regexp=re_join('keyboard'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT KEYBOARD')
     settings.settings(message.chat.id, 1)
@@ -87,7 +87,7 @@ def docall(message):
     settings.settings(message.chat.id, 1, message.text)
 
 
-@bot.message_handler(regexp='|'.join(get_values('language')))
+@bot.message_handler(regexp=re_join('language'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT LOCALE')
     settings.settings(message.chat.id, 2)
@@ -105,20 +105,19 @@ def docall(message):
     settings.settings(message.chat.id, 2, message.text)
 
 
-@bot.message_handler(regexp='|'.join(get_values('notifications')))
+@bot.message_handler(regexp=re_join('notifications'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC')
     settings.settings(message.chat.id, 3)
 
 
-#TODO отд. функ
-@bot.message_handler(regexp='^('+'|'.join(get_values('ON'))+')$')
+@bot.message_handler(regexp=re_join('ON'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC ON')
     settings.settings(message.chat.id, 3, 1)
 
 
-@bot.message_handler(regexp='|'.join(get_values('OFF')))
+@bot.message_handler(regexp=re_join('OFF'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC OFF')
     settings.settings(message.chat.id, 3, 0)
@@ -127,33 +126,33 @@ def docall(message):
 """ other actions """
 
 
-@bot.message_handler(regexp=('|'.join(get_values('my favorites')).replace(' ', '.')))
+@bot.message_handler(regexp=re_join('my favorites'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV MYLIKEES')
     sender.send_likees(message.chat.id)
 
 
-@bot.message_handler(regexp='|'.join(get_values('review')))
+@bot.message_handler(regexp=re_join('review'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV REVIEW')
     settings.settings(message.chat.id, 42, 0)
 
 
-@bot.message_handler(regexp='fw.*')
+@bot.message_handler(regexp='^fw|fw>>$')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV forward FW>>')
     sender.delete_message(message.chat.id, message.id)
     sender.send_gratz_shift(message.chat.id, +1)
 
 
-@bot.message_handler(regexp='.{0,2}rw')
+@bot.message_handler(regexp='^rw|<<rw$')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV backward <<RW')
     sender.delete_message(message.chat.id, message.id)
     sender.send_gratz_shift(message.chat.id, -1)
 
 
-@bot.message_handler(regexp='|'.join(get_values('about'))+'$')
+@bot.message_handler(regexp=re_join('about'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF ABOUT')
     sender.greetz(message.chat.id)
