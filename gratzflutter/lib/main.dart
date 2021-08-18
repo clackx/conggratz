@@ -29,6 +29,7 @@ class _AppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
+        debugShowCheckedModeBanner: false,
         locale: Locale(_locale),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -124,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       style: TextStyle(fontSize: 24)),
                   title: Text(items[index]['name'][langChosen]),
                   subtitle: Text('${items[index]['info'][langChosen]}'),
-                  trailing: _getBklAsset(items[index]['bkls']),
+                  trailing: _getBklAsset(items[index]['rank']),
                   onTap: () => openDetailed(items[index]),
                 )));
           }
@@ -137,6 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
         length: 3,
         initialIndex: 1,
         child: MaterialApp(
+            debugShowCheckedModeBanner: false,
             locale: Locale(langChosen),
             theme: new ThemeData(
               primaryColor: Color(mainColor),
@@ -178,7 +180,15 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
-          Widget wikiInfo(title) {
+          String title = data['name'][langChosen];
+          String locale = langChosen;
+          if (title.substring(0, 1) == '*') {
+            var len = title.toString().length;
+            locale = title.substring(len - 3, len - 1);
+            title = title.substring(1, len - 5);
+          }
+
+          Widget wikiInfo(title, locale) {
             return FutureBuilder(
               builder: (context, AsyncSnapshot snapshot) {
                 switch (snapshot.connectionState) {
@@ -202,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     }
                 }
               },
-              future: getWikiPage(title),
+              future: getWikiPage(title, locale),
             );
           }
 
@@ -217,7 +227,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       pinned: true,
                       flexibleSpace: FlexibleSpaceBar(
                           centerTitle: true,
-                          title: Text(data['name'][langChosen],
+                          title: Text(title,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16.0,
@@ -236,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ];
               },
               body: Center(
-                child: wikiInfo(data['name'][langChosen]),
+                child: wikiInfo(title, locale),
               ),
             ),
           );
@@ -295,7 +305,7 @@ class _MyHomePageState extends State<MyHomePage> {
       List<Map<String, dynamic>> items = allItems[bday] ?? [];
       setState(() => isPerformingRequest[tabNum] = true);
       List<Map<String, dynamic>> newEntries =
-          await dayRequest(bday, items.length, items.length + 15);
+          await dayRequest(bday, items.length, items.length + 15, langChosen);
       if (newEntries.isEmpty) {
         double edge = 50.0;
         double offsetFromBottom = _scrollController.position.maxScrollExtent -
@@ -369,42 +379,30 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<List<Map<String, dynamic>>> dayRequest(
-      String nowaday, int from, int to) async {
-    Uri dataURL = Uri.parse(
-        'http://qrcat.ru:8081/json?bdate=$nowaday&limit=15&offset=$from');
+      String nowaday, int from, int to, String locale) async {
+    Uri dataURL = Uri.parse('https://conggratz.ru/json?'
+        'bdate=$nowaday&limit=15&offset=$from&lang=$locale');
     http.Response response = await http.get(dataURL);
     var jsonResponse = jsonDecode(response.body);
 
     return List.generate(to - from, (index) {
       var item = jsonResponse[index];
-      List emoji = item['emoji'];
-      String icon = '⁉️';
-      if (emoji.length > 0) {
-        icon = emoji[0];
-        final blankspace = icon.indexOf(' ');
-        if (blankspace > 0) {
-          icon = icon.substring(0, blankspace);
-        }
-        final dashinidex = icon.indexOf('-');
-        if (dashinidex > 0) {
-          icon = icon.substring(0, dashinidex);
-        }
-      }
+
       return {
-        'name': jsonDecode(item['links']),
+        'name': item['links'],
         'tags': item['tags'],
         'photo': item['photo'],
-        'info': jsonDecode(item['descr']),
-        'flag': item['flag'],
-        'bkls': item['bklinks'],
-        'icon': icon
+        'info': item['descrs'],
+        'flag': item['countries']['icon'],
+        'icon': item['occupations']['icon'],
+        'rank': item['rank']
       };
     });
   }
 
-  Future<String> getWikiPage(String name) async {
+  Future<String> getWikiPage(String name, String locale) async {
     Uri dataURL = Uri.parse(
-        'https://$langChosen.wikipedia.org/w/api.php?action=query&format=json'
+        'https://$locale.wikipedia.org/w/api.php?action=query&format=json'
         '&prop=extracts&explaintext=1&exintro=1&titles=$name');
     http.Response response = await http.get(dataURL);
 
