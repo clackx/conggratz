@@ -38,7 +38,7 @@ def get_tags(wdentity, lang):
         if dash != -1:
             emoji = emoji[:dash]
 
-    return [{'icon': emoji, 'tags': tags_str, 'emojis': emoji_list}]
+    return {'icon': emoji, 'tags': tags_str, 'emojis': emoji_list}
 
 
 def get_flags_and_countries(wdentity):
@@ -63,8 +63,8 @@ def get_flags_and_countries(wdentity):
             if res_emoji_flag[0] == '-':
                 res_emoji_flag = f.emoji_flag
 
-    return [{'icon': get_flag_emoji(res_emoji_flag),
-             'svg_flags': res_flags, 'countries': res_countries, }]
+    return {'icon': get_flag_emoji(res_emoji_flag),
+             'svg_flags': res_flags, 'countries': res_countries, }
 
 
 def get_wc_thumb(photo, width=420, frmt='jpg'):
@@ -127,6 +127,31 @@ def get_notional_value(data_str, locale):
     return value
 
 
+def normalize(data_str, capitalize=False):
+    data_dict = {}
+    try:
+        data_dict = json.loads(data_str)
+    except json.decoder.JSONDecodeError as e:
+        print('JSON decode error:', e)
+
+    default_v = ''
+    if data_dict:
+        key = list(data_dict.keys())[0]
+
+        if capitalize:
+            default_v = f'*{data_dict[key].capitalize()}'
+        else:
+            default_v = f'*{data_dict[key]} ({key})'
+
+    result_dict = {key:default_v for key in ('en', 'ru', 'es', 'zh')}
+    if capitalize:
+        result_dict.update({key:data_dict[key].capitalize() for key in data_dict})
+    else:
+        result_dict.update({key:data_dict[key] for key in data_dict})
+
+    return result_dict
+
+
 @app.route('/json')
 def jsss():
     bdate = request.args.get('bdate', '01.01')
@@ -140,14 +165,16 @@ def jsss():
         if item:
             list_d.append(item.__dict__)
 
-    newdict = []
+    results = []
     for item in list_d:
         wdentity = item[f'{lang}wde']
-        newdict.append({'wde': wdentity})
+        pgvwrank = item[f'{lang}rank']
         person = People.query.filter_by(wdentity=wdentity).first()
-        newdict.append({'links': person.links, 'descrs': person.descrs,
-                        'photo': get_wc_thumb(person.photo)})
-        newdict.append({'occupations': get_tags(wdentity, 'ru')})
-        newdict.append({'countries': get_flags_and_countries(wdentity)})
+        results.append({'wde': wdentity, 'rank': pgvwrank,
+                        'links': normalize(person.links),
+                        'descrs': normalize(person.descrs, capitalize=True),
+                        'photo': get_wc_thumb(person.photo),
+                        'occupations': get_tags(wdentity, lang),
+                        'countries': get_flags_and_countries(wdentity)})
 
-    return jsonify(newdict)
+    return jsonify(results)
