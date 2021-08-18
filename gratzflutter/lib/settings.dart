@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'main.dart';
 
 class SettingsScreenWidget extends StatefulWidget {
   final SharedPreferences? preferences;
@@ -37,6 +38,14 @@ class SettingsScreen extends State<SettingsScreenWidget> {
           .push(MaterialPageRoute<void>(
               builder: (context) =>
                   ColorSettingsScreenWidget(preferences: preferences)))
+          .then((_) => initializePreferences());
+    }
+
+    openLocaleSettings() async {
+      Navigator.of(context)
+          .push(MaterialPageRoute<void>(
+              builder: (context) =>
+                  LocaleSettingsScreenWidget(preferences: preferences)))
           .then((_) => initializePreferences());
     }
 
@@ -83,7 +92,7 @@ class SettingsScreen extends State<SettingsScreenWidget> {
                           child: Icon(Icons.language_outlined)),
                       title: Text(alt.language_setting),
                       subtitle: Text(alt.language_subtitle),
-                      onTap: () => openDialog()),
+                      onTap: () => openLocaleSettings()),
                   Divider(
                     color: Colors.black,
                   ),
@@ -193,10 +202,10 @@ class ColorSettingsScreen extends State<ColorSettingsScreenWidget> {
                   value: isDark,
                   onChanged: onTumblerTap,
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(16),
                   child:
-                      Text('Main color dawg', style: TextStyle(fontSize: 18)),
+                      Text(alt.theme_maincolor, style: TextStyle(fontSize: 18)),
                 ),
                 RadioListTile<int>(
                     title: Text(alt.theme_colororange),
@@ -223,6 +232,82 @@ class ColorSettingsScreen extends State<ColorSettingsScreenWidget> {
                     value: Colors.red.value,
                     groupValue: mainColor,
                     onChanged: onRadioTap),
+              ]),
+        ));
+  }
+}
+
+class LocaleSettingsScreenWidget extends StatefulWidget {
+  final SharedPreferences? preferences;
+
+  const LocaleSettingsScreenWidget({Key? key, this.preferences})
+      : super(key: key);
+
+  @override
+  State<LocaleSettingsScreenWidget> createState() =>
+      LocaleSettingsScreen(preferences: preferences);
+}
+
+class LocaleSettingsScreen extends State<LocaleSettingsScreenWidget> {
+  final SharedPreferences? preferences;
+
+  LocaleSettingsScreen({required this.preferences});
+
+  bool isDark = false;
+
+  @override
+  Widget build(BuildContext context) {
+    String localePref = preferences?.getString("locale") ?? 'en';
+    int mainColor = preferences?.getInt("color") ?? Colors.green.value;
+    int brightness = preferences?.getInt("bright") ?? Brightness.light.index;
+    isDark = (brightness == 0) ? true : false;
+    final alt = AppLocalizations.of(context)!;
+
+    void onRadioTap(String? value) {
+      setState(() => localePref = value!);
+      preferences!.setString('locale', value!);
+      preferences!.setBool('islclchngd', true);
+      MyApp.setLocale(context, value);
+    }
+
+    RadioListTile rlt(locale) {
+      var d = {'en': 'English', 'ru': 'Русский', 'zh': '中文'};
+      return RadioListTile<String>(
+          title: Container(
+            height: 42,
+            child: Row(children: [
+              Text(locale),
+              Image.asset('graphics/flag$locale.png', width: 64),
+              Text(d[locale] ?? '--'),
+            ]),
+          ),
+          value: locale,
+          groupValue: localePref,
+          onChanged: onRadioTap);
+    }
+
+    return MaterialApp(
+        theme: new ThemeData(
+            primaryColor: Color(mainColor),
+            brightness: Brightness.values[brightness]),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          appBar: AppBar(
+            leading: BackButton(onPressed: () => Navigator.of(context).pop()),
+            title: Text(alt.language_setting),
+          ),
+          body: ListView(
+              padding: const EdgeInsets.only(bottom: 88),
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(alt.language_subtitle,
+                      style: TextStyle(fontSize: 18)),
+                ),
+                rlt('en'),
+                rlt('ru'),
+                rlt('zh'),
               ]),
         ));
   }

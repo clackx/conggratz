@@ -54,6 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<int, bool> isPerformingRequest = {};
 
   SharedPreferences? preferences;
+  String langChosen = 'ru';
   int mainColor = Colors.green.value;
   int brightness = Brightness.dark.index;
   bool isDark = false;
@@ -63,6 +64,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void loadPreferences() async {
+    langChosen = preferences?.getString("locale") ?? 'en';
+    MyApp.setLocale(context, langChosen);
     mainColor = preferences?.getInt("color") ?? Colors.green.value;
     brightness = preferences?.getInt("bright") ?? Brightness.light.index;
     isDark = (brightness == 0) ? true : false;
@@ -81,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _scrollController.addListener(() {
         if (_scrollController.position.pixels ==
             _scrollController.position.maxScrollExtent) {
-          _getMoreData(tabNum);
+          _getMoreData(tabNum, langChosen);
         }
       });
     }
@@ -94,14 +97,31 @@ class _MyHomePageState extends State<MyHomePage> {
   String apptitle = "Cong Gratz календарь";
   DateTime selectedDate = DateTime.now();
 
+  Future<String> lol() async {
+    var lol;
+    lol = preferences?.getString("locale");
+    return lol;
+  }
+
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: lol(),
+        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+          if (snapshot.hasData) {
+            return pidgit();
+          } else
+            return CircularProgressIndicator();
+        });
+  }
+
+  Widget pidgit() {
     Image settingsIcon = isDark
         ? Image.asset('graphics/moon.png')
         : Image.asset('graphics/sun.png');
-    if (!allItems.containsKey(bdayFromOffset(-1))) _getMoreData(0);
-    if (!allItems.containsKey(bdayFromOffset(0))) _getMoreData(1);
-    if (!allItems.containsKey(bdayFromOffset(1))) _getMoreData(2);
+    if (!allItems.containsKey(bdayFromOffset(-1))) _getMoreData(0, langChosen);
+    if (!allItems.containsKey(bdayFromOffset(0))) _getMoreData(1, langChosen);
+    if (!allItems.containsKey(bdayFromOffset(1))) _getMoreData(2, langChosen);
 
     ListView listView(int tabNum) {
       String bday = bdayFromOffset(tabNum - 1);
@@ -298,12 +318,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return result;
   }
 
-  _getMoreData(int tabNum) async {
+  _getMoreData(int tabNum, String langChosen) async {
     String bday = bdayFromOffset(tabNum - 1);
     ScrollController _scrollController = getScrollController(tabNum);
     if (!getPerformingRequestStatus(tabNum)) {
       List<Map<String, dynamic>> items = allItems[bday] ?? [];
-      setState(() => isPerformingRequest[tabNum] = true);
+      isPerformingRequest[tabNum] = true;
       List<Map<String, dynamic>> newEntries =
           await dayRequest(bday, items.length, items.length + 15, langChosen);
       if (newEntries.isEmpty) {
@@ -343,9 +363,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   final languages = ['ru', 'en', 'zh', 'ru'];
-  String langChosen = 'ru';
   String langNext = 'en';
-
   String getLocale(String lang) {
     final locales = ['ru_RU', 'en_US', 'zh_CN'];
     return locales[languages.indexOf(lang)];
@@ -357,6 +375,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (index == 3) index = 0;
     langChosen = languages[index];
     langNext = languages[index + 1];
+    preferences?.setString("locale", langChosen);
     MyApp.setLocale(context, langChosen);
     setState(() {});
   }
@@ -370,12 +389,21 @@ class _MyHomePageState extends State<MyHomePage> {
     return (Image.asset('graphics/bk0$num.png'));
   }
 
+  reloadItems() {
+    bool islclchngd = preferences?.getBool("islclchngd") ?? false;
+    if (islclchngd) {
+      allItems = {};
+      preferences?.setBool("islclchngd", false);
+    }
+    loadPreferences();
+  }
+
   openSettings() async {
     Navigator.of(context)
         .push(MaterialPageRoute<void>(
             builder: (context) =>
                 SettingsScreenWidget(preferences: preferences)))
-        .then((_) => loadPreferences());
+        .then((_) => reloadItems());
   }
 
   Future<List<Map<String, dynamic>>> dayRequest(
