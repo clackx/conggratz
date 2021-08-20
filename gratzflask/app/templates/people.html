@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<body>
+  <div class="bgmain">
+    <div class="container">
+      <h2>Congratz!</h2>
+      <table class="greentbl">
+        <caption>List of famous people born on the day {{dict.bdate}}</caption>
+        <thead style="thead1">
+          <tr>
+            <th scope="col">Person</th>
+            <th scope="col">mj ico</th>
+            <th scope="col">Info</th>
+            <th scope="col">Rank</th>
+            <th scope="col">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          {%for d in data %}
+          <tr class="{{ loop.cycle('green1', 'green2') }}"">
+            <th scope=" row">{{ d.links }}</th>
+            <td>
+              <p style="font-size: 25px">
+                {{ d.countries.icon }} {{ d.occupations.icon }}
+              </p>
+            </td>
+            <td>{{ d.occupations.tags }}</td>
+            <td>{{ d.rank }} </td>
+            <td><a href="/entity/{{ d.wde }}?lang={{ dict.lang }}">{{ d.wde }}</td>
+          </tr>
+
+          {% endfor %}
+
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="1"><a href="{{dict.link_rw}}">&lt;&lt;RW</a> </td>
+            <td colspan="2">{{ dict.counts_str }} </td>
+            <td colspan="2"><a href="{{dict.link_fw}}">FW&gt;&gt;</a></td>
+          </tr>
+        </tfoot>
+      </table>
+
+    </div>
+
+  </div>
+  {% endblock %}

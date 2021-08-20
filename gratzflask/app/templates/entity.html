@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<body>
+  <div class="bg2">
+
+    {{util.flashed_messages(dismissible=True)}}
+    <div class="container">
+
+      <h1>ENTITY <a href="https://www.wikidata.org/wiki/{{ data.wdentity }}">{{ data.wdentity }}</a>
+        {% if dict.link %}
+        || <a href="https://{{dict.lang}}.wikipedia.org/wiki/{{dict.link}}">WIKI</a>
+        {% endif %}
+      </h1>
+
+      <div class="form-group required"><label class="control-label">NAME</label>
+        <input class="form-control" id="field2" name="field2" required type="text" value="{{ data.name }}">
+        <p class="help-block">Say what</p>
+      </div>
+
+      {% if not dict.link %} <div class="form-group red">
+        {% else %} <div class="form-group">
+          {% endif %}
+          <label class="control-label">LOCALNAME</label>
+          <input class="form-control" id="field2" name="field2" required type="text" value="{{ dict.link }}">
+          <p class="help-block">Say what again</p>
+        </div>
+
+        <div style="clear:left;"></div>
+
+        <div class="flags">
+          {% for fnc in data.countries.fc_list %}
+          <div style="float: left;">
+            <img class="img-lit" src="{{fnc.1}}">
+            <p class="flagtext">{{fnc.0}}</p>
+          </div>
+          {% endfor %}
+          <div style="overflow: hidden;">
+            <p class="tagstext"> {{ data.tags }}</p>
+          </div>
+        </div>
+
+        <div style="clear:left;"></div>
+
+        <div>
+          <div class="bigblock picture"> <img class="img-big" src="{{ data.photo }}"></div>
+
+          <div class="bbyellow">
+            {% for key, value in data.descrs.items() %}
+            <div class="form-tow"><label class="control-label">{{ key }}</label>
+              <input class="form-tow-ctrl" id="field2" name="field2" required type="text" value="{{ value }}">
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="ebutn">
+          <button class="btn btn-primary" type="submit">U P D A T E</button>
+          <button class="btn btn-primary" type="submit">S U B M I T</button>
+        </div>
+
+
+        <div class="bbyellow">
+          {% for key, value in data.links.items() %}
+          <div class="form-tow"><label class="control-label">{{ key }}</label>
+            <input class="form-tow-ctrl" id="field2" name="field2" required type="text" value="{{ value }}">
+          </div>
+          {% endfor %}
+        </div>
+        <div class="ebutn">
+          <button class="btn btn-primary" type="submit">U P D A T E</button>
+          <button class="btn btn-primary" type="submit">S U B M I T</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock %}

@@ -1,10 +1,10 @@
-from flask import request, jsonify
+from flask import request, jsonify, render_template, send_from_directory
+import os
 import pprint
 import json
 import datetime
 import hashlib
 from app import app
-
 from app.models import People, Occupations, Tags, Presorted, Countries, Flags
 
 
@@ -22,8 +22,9 @@ def get_tags(wdentity, lang):
     for occu_item in occu_data:
         emoji_list.append(get_emoji_chars(occu_item.emoji))
         occu_descr = get_notional_value(occu_item.descr_cache, lang)
-        occu_descr = occu_descr.replace(' ', '_').replace('/', '_').replace('-', '_')
-        tags_str += f'#{occu_descr} '
+        occu_descr = occu_descr.replace(
+            ' ', '_').replace('/', '_').replace('-', '_')
+        tags_str += f'#{occu_descr} {get_emoji_chars(occu_item.emoji)} '
 
     if not tags_str:
         tags_str = '--notags--'
@@ -178,3 +179,74 @@ def jsss():
                         'countries': get_flags_and_countries(wdentity)})
 
     return jsonify(results)
+
+
+@app.route('/stati/<path:filename>')
+def sttc(filename):
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    return send_from_directory(basedir + '/static/', filename)
+
+
+@app.route('/people')
+def day():
+    bdate = request.args.get('bdate', get_day())
+    limit = int(request.args.get('limit', 10))
+    offset = int(request.args.get('offset', 0))
+    lang = request.args.get('lang', 'ru')
+
+    alldata = Presorted.query.filter_by(bday=bdate)
+    counts = alldata.count()
+    data = alldata.limit(limit).offset(offset)
+    counts_str = f'{offset}-{offset+limit} из {counts}'
+    link = f'people?bday={bdate}&lang={lang}&limit={limit}'
+    next = offset + limit if offset + limit < counts else offset
+    prev = offset - limit if offset - limit >= 0 else 0
+    dict = {
+        'link_fw': link + f'&offset={next}',
+        'link_rw': link + f'&offset={prev}',
+        'counts_str': counts_str,
+        'lang': lang,
+        'bdate': bdate
+    }
+
+    list_d = []
+    for item in data:
+        if item:
+            list_d.append(item.__dict__)
+
+    results = []
+    for item in list_d:
+        wdentity = item[f'{lang}wde']
+        pgvwrank = item[f'{lang}rank']
+        person = People.query.filter_by(wdentity=wdentity).first()
+        results.append({'wde': wdentity, 'rank': pgvwrank,
+                        'links': normalize(person.links)[lang],
+                        'descrs': normalize(person.descrs, capitalize=True),
+                        'photo': get_wc_thumb(person.photo),
+                        'occupations': get_tags(wdentity, lang),
+                        'countries': get_flags_and_countries(wdentity)})
+
+    return render_template('people.html', data=results, dict=dict)
+
+
+@app.route('/entity/<wdentity>',  methods=['GET', 'POST'])
+def wde(wdentity):
+    lang = request.args.get('lang', 'ru')
+
+    p = People.query.filter_by(wdentity=wdentity)[0]
+
+    descrs = {'en': None, 'ru': None}
+    descrs.update(json.loads(p.descrs))
+    data = {'name': p.name,
+            'wdentity': wdentity,
+            'tags': get_tags(wdentity, lang)['tags'],
+            'countries': get_flags_and_countries(wdentity),
+            'photo': get_wc_thumb(p.photo),
+            'descrs': descrs,
+            'links': json.loads(p.links),
+            }
+
+    dict = {'lang': lang,
+            'link': data['links'].get(lang)}
+
+    return render_template('entity.html', data=data, dict=dict)

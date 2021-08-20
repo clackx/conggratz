@@ -1,0 +1,273 @@
+<style type="text/css">body {
+  background-image: url(/stati/fon.webp);
+  background-position: center;
+}
+
+.bgmain {
+  background-image: url(/stati/fon.webp);
+  background-position: center;
+}
+
+.bg2 {
+  background-image: url(/stati/p3.png);
+  background-position: left;
+}
+
+caption {
+  font-family: "Times New Roman", Times, serif, cursive;
+  font-size: 20px;
+  padding: 20px;
+  font-style: italic;
+  caption-side: bottom;
+  color: #ff3;
+  text-align: right;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 1px black;
+}
+
+a {
+  overflow: hidden;
+  background: linear-gradient(to right, #003300, #003300 50%, green 50%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 100%;
+  background-position: 100%;
+  transition: background-position 275ms ease;
+}
+
+a:hover {
+  background-color: yellow;
+  color: yellow;
+  background-position: 0 100%;
+}
+
+h1 {
+  color: green;
+  font-weight: 400;
+  text-shadow: 4px 2px 2px white;
+}
+
+th:nth-child(1) {
+  width: 5%;
+}
+
+thead th:nth-child(2) {
+  width: 10%;
+}
+
+thead th {
+  height: 60px;
+}
+
+/* spacing */
+table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  border: 3px solid purple;
+}
+
+.greentbl {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  border: 3px solid green;
+  background-color: #55ff55;
+  font-size: 16px;
+  border: 3px solid #ccffcc;
+}
+
+thead th:nth-child(1) {
+  width: 30%;
+}
+
+thead th:nth-child(2) {
+  width: 9%;
+}
+
+thead th:nth-child(3) {
+  width: 45%;
+}
+
+thead th:nth-child(4) {
+  width: 6%;
+}
+
+thead th:nth-child(5) {
+  width: 10%;
+}
+
+th, td {
+  padding: 4px;
+  padding-left: 14px;
+}
+
+thead th, tfoot th {
+  font-family: helvetica, cursive;
+  font-size: 18px;
+  padding: 6px;
+}
+
+th {
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+td {
+  letter-spacing: 1px;
+}
+
+tbody td {
+  text-align: center;
+}
+
+tfoot th {
+  text-align: center;
+}
+
+thead, tfoot {
+  color: green;
+  text-shadow: 1px 1px 1px white;
+  text-align: center;
+}
+
+thead th, tfoot th, tfoot td {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.5));
+  border: 3px solid #ccffcc;
+}
+
+tfoot td {
+  height: 60px;
+  font-size: 24px;
+}
+
+tbody tr {
+  background-image: url(/stati/noise.png);
+  height: 64px;
+}
+
+.red {
+  background-color: #ff6666
+}
+
+.warn {
+  background-color: #ffcc44
+}
+
+.warn2 {
+  background-color: #ffff44
+}
+
+.green1 {
+  background-color: #ccff44
+}
+
+.green2 {
+  background-color: #aadd22
+}
+
+.cyan {
+  background-color: #44ffff
+}
+
+.grey {
+  background-color: #999999
+}
+
+.bigblock {
+  float: left;
+  background-color: #aaffff;
+  padding: 20px;
+  margin: 5px;
+}
+
+.bbyellow {
+  background-color: #ffffaa;
+  margin-left: 10px;
+  margin-right: 40px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  width: 89%;
+}
+
+.img-big {
+  max-width: 100%;
+  display: block;
+  margin: auto;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 0 8px 8px white inset;
+  -webkit-box-shadow: 15px 15px 30px 4px rgb(0 0 0 / 80%);
+  -moz-box-shadow: 15px 15px 30px 4px rgba(0, 0, 0, 0.8);
+  box-shadow: 15px 15px 30px 4px rgb(0 0 0 / 80%);
+}
+
+.img-lit {
+  max-width: 100%;
+  height: 64px;
+  align: center;
+  display: block;
+  margin: 10px;
+  padding: 3px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 0 5px 5px white inset;
+  -webkit-box-shadow: 5px 5px 30px 4px rgb(64 0 0 / 80%);
+  -moz-box-shadow: 5px 5px 30px 4px rgba(64, 0, 0, 0.8);
+  box-shadow: 5px 5px 30px 4px rgb(64 64 0 / 80%);
+}
+
+.control-label {
+  width: 40px;
+  padding-left: 15px;
+  margin-left: 0px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  padding: 20px;
+  background-color: #aaffaa;
+  display: inline-block;
+  vertical-align: top;
+  width: 45%;
+}
+
+.form-tow {
+  background-color: #ffffaa;
+}
+
+.form-tow-ctrl {
+  margin-bottom: 3px;
+  width: 45%;
+}
+
+.form-control {
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+.ebutn {
+  margin: 10px 10px 10px 770px;
+}
+
+.flags {
+  background-color: #ffaaaa;
+  overflow: hidden;
+  width: 90%;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.flagtext {
+  font-size: 16px;
+  text-align: center;
+  max-width: 128px;
+}
+
+.tagstext {
+  font-size: 24px;
+  margin: 20px;
+}
+
+</style>
