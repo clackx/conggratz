@@ -27,7 +27,9 @@
                 {{ d.countries.icon }} {{ d.occupations.icon }}
               </p>
             </td>
-            <td>{{ d.occupations.tags }}</td>
+            <td>{%for tag in d.occupations.list %}
+              <a href="/tag/{{ tag.0 }}">#{{ tag.1.get(dict.lang) }}</a> {{ tag.2 }}
+            {%endfor%}</td>
             <td>{{ d.rank }} </td>
             <td><a href="/entity/{{ d.wde }}?lang={{ dict.lang }}">{{ d.wde }}</td>
           </tr>

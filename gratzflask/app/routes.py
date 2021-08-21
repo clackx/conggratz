@@ -16,15 +16,22 @@ def get_tags(wdentity, lang):
     # generating tags list
     tags_str = ''
     emoji_list = []
-    occu_data = Occupations.query.join(Tags, Occupations.occu_entity == Tags.occupation_entity).filter_by(
+    full_list = []
+    occu_data = Occupations.query.join(
+        Tags, Occupations.occu_entity == Tags.occupation_entity).filter_by(
         people_entity=wdentity)
 
     for occu_item in occu_data:
-        emoji_list.append(get_emoji_chars(occu_item.emoji))
-        occu_descr = get_notional_value(occu_item.descr_cache, lang)
-        occu_descr = occu_descr.replace(
-            ' ', '_').replace('/', '_').replace('-', '_')
-        tags_str += f'#{occu_descr} {get_emoji_chars(occu_item.emoji)} '
+        occu_emoji = get_emoji_chars(occu_item.emoji)
+        occu_descr = normalize(occu_item.descr_cache)
+
+        for descr in occu_descr:
+            if occu_descr[descr]:
+                occu_descr[descr].replace(
+                    ' ', '_').replace('/', '_').replace('-', '_')
+        emoji_list.append(occu_emoji)
+        full_list.append((occu_item.occu_entity, occu_descr, occu_emoji))
+        tags_str += f'#{occu_descr[lang]} {get_emoji_chars(occu_item.emoji)} '
 
     if not tags_str:
         tags_str = '--notags--'
@@ -39,14 +46,15 @@ def get_tags(wdentity, lang):
         if dash != -1:
             emoji = emoji[:dash]
 
-    return {'icon': emoji, 'tags': tags_str, 'emojis': emoji_list}
+    return {'icon': emoji, 'tags': tags_str, 'list': full_list}
 
 
 def get_flags_and_countries(wdentity):
     res_emoji_flag = '-'
     res_countries = []
     res_flags = []
-    flags = Flags.query.join(Countries, Countries.country_entity == Flags.country_entity).filter(
+    flags = Flags.query.join(
+        Countries, Countries.country_entity == Flags.country_entity).filter(
         Countries.people_entity == wdentity)
 
     for f in flags:
@@ -65,7 +73,7 @@ def get_flags_and_countries(wdentity):
                 res_emoji_flag = f.emoji_flag
 
     return {'icon': get_flag_emoji(res_emoji_flag),
-             'svg_flags': res_flags, 'countries': res_countries, }
+            'svg_flags': res_flags, 'countries': res_countries, }
 
 
 def get_wc_thumb(photo, width=420, frmt='jpg'):
@@ -129,26 +137,47 @@ def get_notional_value(data_str, locale):
 
 
 def normalize(data_str, capitalize=False):
+    languages = ('en', 'ru', 'es', 'zh', 'kk', 'be',
+                 'uk', 'fr', 'de', 'ko', 'ja', 'it')
+    result_dict = {key: '--nodata--' for key in languages}
+
     data_dict = {}
     try:
         data_dict = json.loads(data_str)
     except json.decoder.JSONDecodeError as e:
         print('JSON decode error:', e)
 
-    default_v = ''
     if data_dict:
-        key = list(data_dict.keys())[0]
+        key_lat = 'en'
+        key_cyr = 'ru'
+
+        default_lat = data_dict.get(key_lat)
+        default_cyr = data_dict.get(key_cyr)
+
+        if not default_lat:
+            key_lat = list(data_dict.keys())[0]
+            default_lat = data_dict.get(key_lat)
+
+        if not default_cyr:
+            key_cyr = key_lat
+            default_cyr = default_lat
 
         if capitalize:
-            default_v = f'*{data_dict[key].capitalize()}'
+            default_lat = f'*{default_cyr.capitalize()}'
+            default_cyr = f'*{default_cyr.capitalize()}'
         else:
-            default_v = f'*{data_dict[key]} ({key})'
+            default_lat = f'*{default_lat} ({key_lat})'
+            default_cyr = f'*{default_cyr} ({key_cyr})'
 
-    result_dict = {key:default_v for key in ('en', 'ru', 'es', 'zh')}
-    if capitalize:
-        result_dict.update({key:data_dict[key].capitalize() for key in data_dict})
-    else:
-        result_dict.update({key:data_dict[key] for key in data_dict})
+        result_dict = {key: default_lat for key in languages}
+        result_dict.update(
+            {key: default_cyr for key in ('ru', 'uk', 'be', 'kk')})
+        for key in data_dict:
+            if data_dict[key]:
+                if capitalize:
+                    result_dict[key] = data_dict[key].capitalize()
+                else:
+                    result_dict[key] = data_dict[key]
 
     return result_dict
 
@@ -229,7 +258,7 @@ def day():
     return render_template('people.html', data=results, dict=dict)
 
 
-@app.route('/entity/<wdentity>',  methods=['GET', 'POST'])
+@app.route('/entity/<wdentity>')
 def wde(wdentity):
     lang = request.args.get('lang', 'ru')
 
@@ -250,3 +279,41 @@ def wde(wdentity):
             'link': data['links'].get(lang)}
 
     return render_template('entity.html', data=data, dict=dict)
+
+
+@app.route('/tag/<wdentity>')
+def tag(wdentity):
+    limit = int(request.args.get('limit', 7))
+    offset = int(request.args.get('offset', 0))
+    lang = request.args.get('lang', 'ru')
+
+    tags = Tags.query.with_entities(Tags.people_entity).filter_by(
+        occupation_entity=wdentity)
+
+    persons = People.query.filter(People.wdentity.in_(tags)).order_by(
+        People.qrank.desc()).limit(limit).offset(offset)
+
+    counts = tags.count()
+    counts_str = f'{offset}-{offset+limit} из {counts}'
+    link = f'{wdentity}?lang={lang}&limit={limit}'
+    next = offset + limit if offset + limit < counts else offset
+    prev = offset - limit if offset - limit >= 0 else 0
+
+    dict = {
+        'link_fw': link + f'&offset={next}',
+        'link_rw': link + f'&offset={prev}',
+        'counts_str': counts_str,
+        'lang': lang,
+    }
+
+    results = []
+    for person in persons:
+        wdentity = person.wdentity
+        results.append({'wde': person.wdentity, 'rank': person.qrank,
+                        'links': normalize(person.links)[lang],
+                        'descrs': normalize(person.descrs, capitalize=True),
+                        'photo': get_wc_thumb(person.photo),
+                        'occupations': get_tags(wdentity, lang),
+                        'countries': get_flags_and_countries(wdentity)})
+
+    return render_template('people.html', data=results, dict=dict)

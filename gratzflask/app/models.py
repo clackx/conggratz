@@ -8,6 +8,7 @@ class People(db.Model):
     descrs = db.Column(db.String)
     links = db.Column(db.String)
     photo = db.Column(db.String)
+    qrank = db.Column(db.Integer)
 
 
 class Occupations(db.Model):
@@ -18,7 +19,6 @@ class Occupations(db.Model):
 
 
 class Tags(db.Model):
-    _id = db.Column(db.Integer)
     people_entity = db.Column(db.String, primary_key=True)
     occupation_entity = db.Column(db.String, primary_key=True)
 
