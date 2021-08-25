@@ -5,7 +5,6 @@ from messages import re_join
 import elogger
 import user
 
-
 """ command section """
 
 
@@ -96,7 +95,7 @@ def docall(message):
 @bot.message_handler(regexp='^.{2} (RU|BE|UK|KK|EN|DE|ES|FR|IT|ZH|KO|JA)$')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT LOCALE {message.text[3:]}')
-    settings.settings(message.chat.id, 2, '*'+message.text[3:])
+    settings.settings(message.chat.id, 2, '*' + message.text[3:])
 
 
 @bot.message_handler(regexp='^(RU|BE|UK|KK|EN|DE|ES|FR|IT|ZH|KO|JA)$')
@@ -178,3 +177,11 @@ def docall(query):
         sender.save_liked(query.message.chat.id, wdid, query.id)
     if button == 'more':
         sender.send_more(query.message.chat.id, wdid, query.id)
+    if button == 'info':
+        sender.answer_callback_query(query.id)
+        if wdid == 'rw':
+            sender.send_gratz_shift(query.message.chat.id, -1)
+        elif wdid == 'fw':
+            sender.send_gratz_shift(query.message.chat.id, +1)
+        else:
+            sender.send_info(query.message.chat.id, wdid)

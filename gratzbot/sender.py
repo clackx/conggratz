@@ -10,22 +10,27 @@ import elogger
 from messages import get_translation
 
 
-def send_gratz_brief(chat_id, bday, offset=0):
+def send_gratz_brief(chat_id, bday, offset=0, prev_message_id=''):
     """ sends daily briefing for *bday*, starting from *offset*
     all the time *offset* is 0, except calling from send_greets_shift """
     elogger.info(f'<< {chat_id} send_greetz {bday} offset {offset}')
-    text, keyboard = getter.get_day_plus(chat_id, bday, offset)
-    message_id = send_message(chat_id, text, markup=keyboard)
+    text, keyboard, kbtype = getter.get_day_plus(chat_id, bday, offset)
+    if kbtype == 'regular' or offset == 0:
+        message_id = send_message(chat_id, text, markup=keyboard)
+    else:
+        edit_message(chat_id, prev_message_id, text, markup=keyboard)
+        message_id = prev_message_id
     user.update_param(chat_id, 'session', {'message_id': message_id, 'bday': bday, 'offset': offset})
     elogger.exiter(f'[OK]  [OK]  [OK]', True)
 
 
 def send_gratz_shift(chat_id, direction):
     """ deletes the previous brief and sends a new one with calculated offset """
-    prev_message_id, bday, offset, is_rested = getter.get_shift_params(chat_id, direction)
+    prev_message_id, bday, offset, is_rested, kbtype = getter.get_shift_params(chat_id, direction)
     if not is_rested:
-        delete_message(chat_id, prev_message_id)
-        send_gratz_brief(chat_id, bday, offset)
+        if kbtype == 'regular':
+            delete_message(chat_id, prev_message_id)
+        send_gratz_brief(chat_id, bday, offset, prev_message_id)
 
 
 def incoming(chat_id, incoming_message):
@@ -51,7 +56,10 @@ def send_info(chat_id, incoming_message):
     altale = user.load_param(chat_id, 'locale').get('altern', 'en')
     starttime = datetime.datetime.now()
     message_id = send_message(chat_id, '....')
-    wdid = search_entity(incoming_message)
+    if incoming_message[:1] == 'Q':
+        wdid = incoming_message
+    else:
+        wdid = search_entity(incoming_message)
     stata = ''
     if wdid is None:
         edit_message(chat_id, message_id, get_translation('not found', locale))
@@ -78,7 +86,7 @@ def send_more(chat_id, wdid, query_id):
         for value in props_dict[prop][1:]:
             text += f'• {value} \n'
         send_message(chat_id, text)
-    bot.answer_callback_query(query_id)
+    answer_callback_query(query_id)
 
 
 def save_liked(chat_id, wdid, query_id):
@@ -89,10 +97,7 @@ def save_liked(chat_id, wdid, query_id):
         text = get_translation('added to fav', locale)
     else:
         text = get_translation('already in fav', locale)
-    try:
-        bot.answer_callback_query(query_id)
-    except Exception as e:
-        print(e)
+    answer_callback_query(query_id)
     send_message(chat_id, text)
     elogger.exiter('[OK]', text)
 
@@ -191,3 +196,13 @@ def delete_message(chat_id, message_id):
         elogger.warn(f'! TELE API: {e}')
     except requests.exceptions.ConnectionError as e:
         elogger.warn(f'! REQUESTS: {e}')
+
+
+def answer_callback_query(query_id):
+    if query_id:
+        try:
+            bot.answer_callback_query(query_id)
+        except telebot.apihelper.ApiTelegramException as e:
+            elogger.warn(f'! TELE API: {e}')
+        except requests.exceptions.ConnectionError as e:
+            elogger.warn(f'! REQUESTS: {e}')

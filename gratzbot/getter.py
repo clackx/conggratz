@@ -169,6 +169,7 @@ def get_info(wdid, locale, altale):
 def get_shift_params(userid, direction):
     """ get user session params for shift operation """
     step = user.load_param(userid, 'keyboard').get('step')
+    kbtype = user.load_param(userid, 'keyboard').get('type')
     s = user.load_param(userid, 'session')
     bday = s.get('bday')
     offset = s.get('offset') + direction * int(step)
@@ -177,7 +178,7 @@ def get_shift_params(userid, direction):
         offset = 0
         is_rested = True
     message_id = s.get('message_id')
-    return message_id, bday, offset, is_rested
+    return message_id, bday, offset, is_rested, kbtype
 
 
 def get_day_plus(userid, bday, offset):
@@ -188,11 +189,12 @@ def get_day_plus(userid, bday, offset):
     keyboard = user.load_param(userid, 'keyboard')
     count = keyboard.get('entries')
     buttons = keyboard.get('keys')
+    kbtype = keyboard.get('type')
     debug = True if userid == admin_id else False
-    text, names = get_day_info(bday, locale, altale, offset, count, debug)
-    keyboard = get_keyboard(names, buttons)
+    text, names, entities = get_day_info(bday, locale, altale, offset, count, debug)
+    keyboard = get_keyboard(names, buttons, entities, kbtype)
     elogger.exiter('[OK] MAIN', text)
-    return text, keyboard
+    return text, keyboard, kbtype
 
 
 def get_day_info(bday, locale, altale, offset, count, debug=False):
@@ -202,7 +204,6 @@ def get_day_info(bday, locale, altale, offset, count, debug=False):
     elogger.enter(f'----- get_today {bday}, {count} items')
     starttime = datetime.now()
     res_names = []
-    is_end = False
     res_text = f'{get_dayname(bday, locale)} {get_translation("were born", locale)}:\n\n'
     data = maindb.get_day_intro(bday, locale, offset, count)
     entities = []
@@ -238,30 +239,44 @@ def get_day_info(bday, locale, altale, offset, count, debug=False):
     stata = "<code>Spend {}s to request</code>".format((endtime - starttime).total_seconds())
     res_text += stata if debug else ''
     elogger.exiter('[OK] all great ', stata)
-    return res_text, res_names
+    return res_text, res_names, entities
 
 
-def get_keyboard(names, buttons):
+def get_button(name, entity='', kbtype='regualr'):
+    if kbtype == 'regular':
+        button = types.KeyboardButton
+        return button(text=name)
+    else:
+        button = types.InlineKeyboardButton
+        return button(text=name, callback_data=f'info_{entity}')
+
+
+def get_keyboard(names, buttons, entities, kbtype):
     """ build keyboard markup from list of names and 2 nav buttons """
     elogger.debug(f'get_keyboard {str(names)[:100]}')
-    button = types.KeyboardButton
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    if kbtype == 'regular':
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    else:
+        markup = types.InlineKeyboardMarkup(row_width=2)
+
     is_odd = True if (len(names) % 2) != 0 else False
     is_end = False
     if len(names) < buttons:
-        buttons = len(names) if not is_odd else len(names)-1
+        buttons = len(names) if not is_odd else len(names) - 1
         is_end = True
 
     for i in range(0, int(buttons), 2):
-        markup.add(button(text=names[i]), button(text=names[i + 1]))
+        markup.add(get_button(names[i], entities[i], kbtype),
+                   get_button(names[i + 1], entities[i + 1], kbtype))
 
     if not is_end:
-        markup.add(button(text="<<RW"), button(text="FW>>"))
+        markup.add(get_button('<<RW', 'rw', kbtype), get_button('FW>>', 'fw', kbtype))
     else:
         if is_odd:
-            markup.add(button(text=names[i+2]), button(text="<<RW"))
+            markup.add(get_button(names[i + 2], entities[i + 2], kbtype),
+                       get_button('<<RW', 'rw', kbtype))
         else:
-            markup.add(button(text="<<RW"))
+            markup.add(get_button('<<RW', 'rw', kbtype))
 
     return markup
 
