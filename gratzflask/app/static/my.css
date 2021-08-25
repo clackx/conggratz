@@ -213,9 +213,9 @@ tbody tr {
   border-radius: 10px;
   object-fit: cover;
   box-shadow: 0 0 5px 5px white inset;
-  -webkit-box-shadow: 5px 5px 30px 4px rgb(64 0 0 / 80%);
-  -moz-box-shadow: 5px 5px 30px 4px rgba(64, 0, 0, 0.8);
-  box-shadow: 5px 5px 30px 4px rgb(64 64 0 / 80%);
+  -webkit-box-shadow: 5px 5px 30px 4px rgb(192 32 32 / 80%);
+  -moz-box-shadow: 5px 5px 30px 4px rgba(192, 32, 32, 0.8);
+  box-shadow: 5px 5px 30px 4px rgb(192 32 32 / 80%);
 }
 
 .control-label {

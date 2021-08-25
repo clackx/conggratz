@@ -53,13 +53,16 @@ def get_flags_and_countries(wdentity):
     res_emoji_flag = '-'
     res_countries = []
     res_flags = []
+    fc_list = []
     flags = Flags.query.join(
         Countries, Countries.country_entity == Flags.country_entity).filter(
         Countries.people_entity == wdentity)
 
     for f in flags:
-        res_flags.append(get_wc_thumb(f.svg_flag, width=256, frmt='png'))
+        flag_img = get_wc_thumb(f.svg_flag, width=256, frmt='png')
+        res_flags.append(flag_img)
         res_countries.append(f.country_name)
+        fc_list.append((f.country_name, flag_img))
 
         if not res_emoji_flag:
             res_emoji_flag = f.emoji_flag
@@ -72,7 +75,7 @@ def get_flags_and_countries(wdentity):
             if res_emoji_flag[0] == '-':
                 res_emoji_flag = f.emoji_flag
 
-    return {'icon': get_flag_emoji(res_emoji_flag),
+    return {'icon': get_flag_emoji(res_emoji_flag), 'fc_list': fc_list,
             'svg_flags': res_flags, 'countries': res_countries, }
 
 
