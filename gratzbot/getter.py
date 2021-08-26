@@ -192,7 +192,7 @@ def get_day_plus(userid, bday, offset):
     kbtype = keyboard.get('type')
     debug = True if userid == admin_id else False
     text, names, entities = get_day_info(bday, locale, altale, offset, count, debug)
-    keyboard = get_keyboard(names, buttons, entities, kbtype)
+    keyboard = get_keyboard(names, buttons, entities, kbtype, offset)
     elogger.exiter('[OK] MAIN', text)
     return text, keyboard, kbtype
 
@@ -251,7 +251,7 @@ def get_button(name, entity='', kbtype='regualr'):
         return button(text=name, callback_data=f'info_{entity}')
 
 
-def get_keyboard(names, buttons, entities, kbtype):
+def get_keyboard(names, buttons, entities, kbtype, offset):
     """ build keyboard markup from list of names and 2 nav buttons """
     elogger.debug(f'get_keyboard {str(names)[:100]}')
     if kbtype == 'regular':
@@ -268,6 +268,10 @@ def get_keyboard(names, buttons, entities, kbtype):
     for i in range(0, int(buttons), 2):
         markup.add(get_button(names[i], entities[i], kbtype),
                    get_button(names[i + 1], entities[i + 1], kbtype))
+
+    if offset == 0:
+        markup.add(get_button('FW >>>', 'fw', kbtype))
+        return markup
 
     if not is_end:
         markup.add(get_button('<<RW', 'rw', kbtype), get_button('FW>>', 'fw', kbtype))
