@@ -232,7 +232,7 @@ def get_day_info(bday, locale, altale, offset, count, debug=False):
                 res_names.append(name)
                 res_text += f' {flag}{ftag} : : {name}\n{desc}\n\n'
 
-    if count > len(entities):
+    if int(count) > len(entities):
         res_text += '      ~~ endofdata ~~'
 
     endtime = datetime.now()
@@ -261,7 +261,7 @@ def get_keyboard(names, buttons, entities, kbtype):
 
     is_odd = True if (len(names) % 2) != 0 else False
     is_end = False
-    if len(names) < buttons:
+    if len(names) < int(buttons):
         buttons = len(names) if not is_odd else len(names) - 1
         is_end = True
 
