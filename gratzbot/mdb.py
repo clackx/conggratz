@@ -11,7 +11,7 @@ def to_tuple_string(elements):
         return f"('{elements}')"
     else:
         if len(elements) == 1:
-            return f"('{elements[0]}')"
+            return f"('{tuple(elements)[0]}')"
         else:
             return str(tuple(map(str, elements)))
 
