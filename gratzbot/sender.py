@@ -180,13 +180,16 @@ def send_message(chat_id, message, markup=''):
 
 
 def edit_message(chat_id, message_id, text, markup=''):
+    is_successful = False
     try:
         bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text,
                               parse_mode="html", reply_markup=markup)
+        is_successful = True
     except telebot.apihelper.ApiTelegramException as e:
         elogger.warn(f'! TELE API: {e}')
     except requests.exceptions.ConnectionError as e:
         elogger.warn(f'! REQUESTS: {e}')
+    return is_successful
 
 
 def delete_message(chat_id, message_id):
