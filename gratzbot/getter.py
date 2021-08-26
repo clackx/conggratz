@@ -327,15 +327,17 @@ def get_all_fav(userid):
     elogger.enter(f'----- get_all_fav {userid}')
     locale = user.load_param(userid, 'locale').get('primary')
     altale = user.load_param(userid, 'locale').get('altern', 'en')
+    kbtype = user.load_param(userid, 'keyboard').get('type')
     wdentities = sum(maindb.get_allfav(userid), ())
     data = get_universal('sitelinks', wdentities, locale, altale)
+    head = '' if kbtype == 'regular' else get_translation('my favorites', locale) + ':\n'
     result = ''
     for wdid in wdentities:
-        result += f'{data[wdid][1]}\n'
+        result += f'• {data[wdid][1]}\n'
     if not result:
         result = 'N/A'
     elogger.exiter(f'[OK]', result)
-    return result
+    return head + result
 
 
 def get_flag(country, flagonly=False):
