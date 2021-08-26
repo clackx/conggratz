@@ -178,6 +178,8 @@ def send_message(chat_id, message, markup=''):
             print('Error', err_num_str)
     except requests.exceptions.ConnectionError as e:
         elogger.warn(f'! REQUESTS: {e}')
+    if message_id:
+        user.update_param(chat_id, 'session', {'message_id': message_id})
     return message_id
 
 
