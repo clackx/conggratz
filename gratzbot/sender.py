@@ -86,6 +86,8 @@ def send_more(chat_id, wdid, query_id):
         for value in props_dict[prop][1:]:
             text += f'• {value} \n'
         send_message(chat_id, text)
+    if not props_dict:
+        send_message(chat_id, 'N/A')
     answer_callback_query(query_id)
 
 
