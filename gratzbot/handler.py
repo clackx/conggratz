@@ -17,18 +17,18 @@ def docall(message):
 
 
 @bot.message_handler(commands=["menu"])
-@bot.message_handler(regexp=(re_join('main menu', ['menu', 'меню'])))
+@bot.message_handler(regexp=(re_join('main menu', ['menu', 'меню', '<<< Menu'])))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV command /menu')
-    settings.settings(message.chat.id, 4)
+    settings.settings(message.chat.id, 4, 'noedit')
 
 
 @bot.message_handler(commands=["settings"])
-@bot.message_handler(commands=["set"])
+@bot.message_handler(commands=["sets"])
 @bot.message_handler(regexp=re_join('config'))
 def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV command /set')
-    settings.settings(message.chat.id, 0)
+    elogger.preinfo(f'<< {message.chat.id} SRV command /sets')
+    settings.settings(message.chat.id, 0, 'noedit')
 
 
 @bot.message_handler(commands=["help"])
@@ -41,7 +41,7 @@ def docall(message):
 @bot.message_handler(regexp=re_join('today'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF TODAY')
-    sender.send_gratz_brief(message.chat.id, birthday_from_offset(0))
+    sender.send_gratz_brief(message.chat.id, birthday_from_offset(0), noedit=True)
 
 
 """ day section """
@@ -65,7 +65,7 @@ def docall(message):
     sender.send_anotherdaytext(message.chat.id)
 
 
-@bot.message_handler(regexp='\d{1,2}[\.|-]\d{1,2}')
+@bot.message_handler(regexp='^\d{1,2}[\.|-]\d{1,2}$')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF MONTH.DAY {message.text}')
     sender.parseday(message.chat.id, message.text)
@@ -80,7 +80,14 @@ def docall(message):
     settings.settings(message.chat.id, 1)
 
 
-@bot.message_handler(regexp='\d')
+@bot.message_handler(regexp='^\d{1,2}$')
+def docall(message):
+    elogger.preinfo(f'<< {message.chat.id} STT NUMERIC {message.text}')
+    sender.delete_message(message.chat.id, message.id)
+    settings.settings(message.chat.id, 1, message.text)
+
+
+@bot.message_handler(regexp='^(inline|regular)$')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT NUMERIC {message.text}')
     settings.settings(message.chat.id, 1, message.text)
@@ -144,6 +151,11 @@ def docall(message):
     sender.send_gratz_shift(message.chat.id, +1)
 
 
+@bot.message_handler(commands=["fw"])
+def docall(message):
+    sender.send_gratz_shift(message.chat.id, +1, noedit=True)
+
+
 @bot.message_handler(regexp='^rw|<<rw$')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV backward <<RW')
@@ -172,16 +184,56 @@ def docall(message):
 def docall(query):
     elogger.preinfo(f'<< {query.message.chat.id} INF BUTTON {query.data}')
     button = query.data[:4]
-    wdid = query.data[5:]
+    clarify = query.data[5:]
     if button == 'like':
-        sender.save_liked(query.message.chat.id, wdid, query.id)
+        sender.save_liked(query.message.chat.id, clarify, query.id)
     if button == 'more':
-        sender.send_more(query.message.chat.id, wdid, query.id)
+        sender.send_more(query.message.chat.id, clarify, query.id)
     if button == 'info':
         sender.answer_callback_query(query.id)
-        if wdid == 'rw':
+        if clarify == 'rw':
             sender.send_gratz_shift(query.message.chat.id, -1)
-        elif wdid == 'fw':
+        elif clarify == 'fw':
             sender.send_gratz_shift(query.message.chat.id, +1)
+        elif clarify == 'menu':
+            settings.settings(query.message.chat.id, 4)
         else:
-            sender.send_info(query.message.chat.id, wdid)
+            sender.send_info(query.message.chat.id, clarify)
+    if button == 'sets':
+        print('sets:', clarify)
+        sender.answer_callback_query(query.id)
+        if clarify in ('2', '4', '6', '8', '10'):
+            settings.settings(query.message.chat.id, 1, clarify)
+        elif clarify == 'keyboard':
+            settings.settings(query.message.chat.id, 1)
+        elif clarify in ('regular', 'inline'):
+            settings.settings(query.message.chat.id, 1, clarify)
+        elif clarify == 'config':
+            settings.settings(query.message.chat.id, 0)
+        elif clarify == 'language':
+            settings.settings(query.message.chat.id, 2)
+        elif clarify[0] == 'x':
+            settings.settings(query.message.chat.id, 2, '*' + clarify[1:])
+        elif clarify == 'notifications':
+            settings.settings(query.message.chat.id, 3)
+        elif clarify == 'main_menu':
+            settings.settings(query.message.chat.id, 4)
+        elif clarify == 'review':
+            settings.settings(query.message.chat.id, 42, 0)
+        elif clarify == 'ON':
+            settings.settings(query.message.chat.id, 3, 1)
+        elif clarify == 'OFF':
+            settings.settings(query.message.chat.id, 3, 2)
+
+        elif clarify == 'today':
+            sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(0))
+        elif clarify == 'tomorrow':
+            sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(1))
+        elif clarify == 'yesterday':
+            sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(-1))
+        elif clarify == 'another_day':
+            sender.send_anotherdaytext(query.message.chat.id)
+        elif clarify == 'my_favorites':
+            sender.send_likees(query.message.chat.id)
+        elif clarify == 'about':
+            sender.greetz(query.message.chat.id)

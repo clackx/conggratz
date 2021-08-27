@@ -177,8 +177,7 @@ def get_shift_params(userid, direction):
     if offset < 0:
         offset = 0
         is_rested = True
-    message_id = s.get('message_id')
-    return message_id, bday, offset, is_rested, kbtype
+    return bday, offset, is_rested, kbtype
 
 
 def get_day_plus(userid, bday, offset):
@@ -270,7 +269,8 @@ def get_keyboard(names, buttons, entities, kbtype, offset):
                    get_button(names[i + 1], entities[i + 1], kbtype))
 
     if offset == 0:
-        markup.add(get_button('FW >>>', 'fw', kbtype))
+        markup.add(get_button('<<< Menu', 'menu', kbtype),
+                   get_button('FW >>>', 'fw', kbtype))
         return markup
 
     if not is_end:
@@ -316,7 +316,7 @@ def get_acc_info(userid):
     res_str = f"{get_translation('config', locale)}:\n"
     res_str += f"<code>{(get_translation('language', locale) + ':').ljust(spaces)}  " \
                f"{locale}  {get_flag(locale, flagonly=True)}\n"
-    res_str += f"╰{(' ALT ' + get_translation('language', altale) + ':').ljust(spaces)} " \
+    res_str += f"╰{(get_translation('language', altale) + ' ALT :').ljust(spaces)} " \
                f"{altale}  {get_flag(altale, flagonly=True)} \n"
     res_str += f"{get_translation('keyboard', locale)}:\n"
     res_str += f"├{(get_translation('type', locale) + ':').ljust(spaces)} {keyb.get('type')} \n"

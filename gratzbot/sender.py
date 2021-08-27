@@ -10,33 +10,26 @@ import elogger
 from messages import get_translation
 
 
-def send_gratz_brief(chat_id, bday, offset=0, prev_message_id=''):
+def send_gratz_brief(chat_id, bday, offset=0, noedit=False):
     """ sends daily briefing for *bday*, starting from *offset*
     all the time *offset* is 0, except calling from send_greets_shift """
     elogger.info(f'<< {chat_id} send_greetz {bday} offset {offset}')
-    text, keyboard, kbtype = getter.get_day_plus(chat_id, bday, offset)
-    if kbtype == 'regular' or offset == 0:
-        message_id = send_message(chat_id, text, markup=keyboard)
-    else:
-        edit_message(chat_id, prev_message_id, text, markup=keyboard)
-        message_id = prev_message_id
-    user.update_param(chat_id, 'session', {'message_id': message_id, 'bday': bday, 'offset': offset})
+    text, markup, kbtype = getter.get_day_plus(chat_id, bday, offset)
+    smartsend(chat_id, text, markup, kbtype, noedit)
+    user.update_param(chat_id, 'session', {'bday': bday, 'offset': offset})
     elogger.exiter(f'[OK]  [OK]  [OK]', True)
 
 
-def send_gratz_shift(chat_id, direction):
+def send_gratz_shift(chat_id, direction, noedit=False):
     """ deletes the previous brief and sends a new one with calculated offset """
-    prev_message_id, bday, offset, is_rested, kbtype = getter.get_shift_params(chat_id, direction)
+    bday, offset, is_rested, kbtype = getter.get_shift_params(chat_id, direction)
     if not is_rested:
-        if kbtype == 'regular':
-            delete_message(chat_id, prev_message_id)
-        send_gratz_brief(chat_id, bday, offset, prev_message_id)
+        send_gratz_brief(chat_id, bday, offset, noedit)
 
 
 def incoming(chat_id, incoming_message):
     state = user.load_param(chat_id, 'session').get('state')
     if state == 4:
-        # review(chat_id, incoming_message)
         elogger.preinfo(f':: {chat_id} RVW {incoming_message}')
         send_message(chat_id, message='GREAT THANX!')
         user.update_param(chat_id, 'session', {'state': 0})
@@ -130,7 +123,6 @@ def parseday(chat_id, message):
             tstamp = datetime.datetime.strptime(message, '%m-%d')
     except ValueError:
         pass
-
     bday = tstamp.strftime('%m.%d')
     if bday:
         send_gratz_brief(chat_id, bday)
@@ -158,6 +150,22 @@ def prehelp(chat_id, locale):
         send_message(chat_id, get_translation('rugreetz', 'ru'))
     else:
         send_message(chat_id, get_translation('rugreetz', 'en'))
+
+
+def smartsend(chat_id, text, markup, kbtype, noedit=False):
+    s = user.load_param(chat_id, 'session')
+    prev_sets_mess_id = s.get('sets_mess_id')
+    prev_message_id = s.get('message_id')
+    if kbtype == 'regular' or prev_message_id != prev_sets_mess_id or noedit:
+        delete_message(chat_id, prev_sets_mess_id)
+        message_id = send_message(chat_id, text, markup=markup)
+    else:
+        is_successful = edit_message(chat_id, prev_sets_mess_id, text, markup=markup)
+        if not is_successful:
+            message_id = send_message(chat_id, text, markup=markup)
+        else:
+            return
+    user.update_param(chat_id, 'session', {'sets_mess_id': message_id})
 
 
 def send_message(chat_id, message, markup=''):

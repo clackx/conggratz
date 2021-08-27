@@ -51,6 +51,7 @@ MESSAGES = {
          'es': 'Configuración',
          'fr': 'Configuration',
          'it': 'Configurazione',
+         'en': 'Configuration',
          'zh': '配置',
          'ko': '구성',
          'ja': '構成'
@@ -443,14 +444,22 @@ def get_translation(message, locale):
     if mess_dict:
         result = mess_dict.get(locale)
     if result:
+        if message == 'language':
+            return result + ' (Lang)'
         return result
-    return message.capitalize()
+    if mess_dict:
+        return message.capitalize()
+    else:
+        return message
 
 
 def get_values(key):
     result = [key, ]
     for value in MESSAGES[key].values():
-        result.append(value)
+        if key == 'language':
+            result.append(value + ' \(Lang\)')
+        else:
+            result.append(value)
     return result
 
 

@@ -1,64 +1,106 @@
 from telebot import types
 from getter import get_acc_info, get_flag
 from messages import get_translation
-from sender import send_message
+from sender import send_message, delete_message, smartsend
 import user
+
+
+def get_button(name, locale, kbtype='regular'):
+    if kbtype == 'regular':
+        button = types.KeyboardButton
+        text = get_translation(name, locale)
+        return button(text)
+    else:
+        button = types.InlineKeyboardButton
+        if name[3:5] in ('RU', 'BE', 'UK', 'KK', 'EN', 'DE', 'ES', 'FR', 'IT', 'ZH', 'KO', 'JA'):
+            text = name
+            name = 'x' + name[3:5]
+        else:
+            text = get_translation(name, locale)
+        return button(text=text, callback_data=f'sets_{name.replace(" ", "_")}')
 
 
 def settings(chat_id, rtype, message=''):
     locale = user.load_param(chat_id, 'locale').get('primary')
+    kbtype = user.load_param(chat_id, 'keyboard').get('type')
+    s = user.load_param(chat_id, 'session')
+    prev_message_id = s.get('message_id')
+    prev_sets_mess_id = s.get('sets_mess_id')
+
     btn_list = 'menu'
     text = '...'
 
     if rtype == 1:
-        if message == '':
+        set_str = get_translation('set to', locale)
+        btn_list_list = (('inline', 'regular'), ('2', '4', '6', '8'),
+                         ('4', '6', '8', '10'), ('2', '4', '6', '8'), 'menu')
+        line_list = ('number of keys', 'number of entries', 'value of step')
+        transl_list = [get_translation('keyboard', locale) + '. ' +
+                       get_translation('type', locale) + ': ']
+        transl_list += [get_translation(line, locale) for line in line_list]
+
+        if message.lower() in ('inline', 'regular'):
+            kbtype = message.lower()
+            user.update_param(chat_id, 'keyboard', {'type': kbtype})
+            delete_message(chat_id, prev_sets_mess_id)
+            send_message(chat_id, transl_list[0] + kbtype)
+            state = 1
+        elif message == '':
             state = 0
         else:
             state = user.load_param(chat_id, 'session').get('state', 0)
         choice = message
-        set_str = get_translation('set to', locale)
-        btn_list_list = (('2', '4', '6', '8'), ('4', '6', '8', '10'), ('2', '4', '6', '8'))
+
         if state == 0:
-            user.update_param(chat_id, 'session', {'state': 1})
-            user.update_param(chat_id, 'keyboard', {'type': 'regular'})
-            text = get_translation('number of keys', locale)
-            btn_list = (btn_list_list[0],)
-        elif state == 1:
-            if choice not in btn_list_list[0]:
-                choice = '6'
-            send_message(chat_id, f'{set_str}: {choice}')
-            user.update_param(chat_id, 'session', {'state': 2})
-            user.update_param(chat_id, 'keyboard', {'keys': choice})
-            text = get_translation('number of entries', locale)
-            btn_list = (btn_list_list[1],)
+            user.update_param(chat_id, 'session', {'state': state + 1})
+            text = transl_list[state]
+            btn_list = (btn_list_list[state],)
+        if state == 1:
+            user.update_param(chat_id, 'session', {'state': state + 1})
+            text = transl_list[state]
+            btn_list = (btn_list_list[state],)
         elif state == 2:
-            if choice not in btn_list_list[1]:
+            if choice not in btn_list_list[state - 1]:
+                choice = '6'
+            if kbtype != 'inline':
+                delete_message(chat_id, prev_message_id)
+                send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
+            user.update_param(chat_id, 'session', {'state': state + 1})
+            user.update_param(chat_id, 'keyboard', {'keys': choice})
+            text = transl_list[2]
+            btn_list = (btn_list_list[2],)
+        elif state == 3:
+            if choice not in btn_list_list[state - 1]:
                 choice = '6'
             keynum = user.load_param(chat_id, 'keyboard').get('keys')
             if int(choice) < int(keynum):
                 choice = keynum
-            send_message(chat_id, f'{set_str}: {choice}')
-            user.update_param(chat_id, 'session', {'state': 3})
+            if kbtype != 'inline':
+                delete_message(chat_id, prev_message_id)
+                send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
+            user.update_param(chat_id, 'session', {'state': state + 1})
             user.update_param(chat_id, 'keyboard', {'entries': choice})
-            text = get_translation('value of step', locale)
-            btn_list = (btn_list_list[2],)
-        elif state == 3:
-            if choice not in btn_list_list[2]:
+            text = transl_list[state]
+            btn_list = (btn_list_list[state],)
+        elif state == 4:
+            if choice not in btn_list_list[state - 1]:
                 choice = '4'
             keynum = user.load_param(chat_id, 'keyboard').get('keys', 0)
             if int(choice) > int(keynum):
                 choice = keynum
-            send_message(chat_id, f'{set_str}: {choice}')
+            if kbtype != 'inline':
+                delete_message(chat_id, prev_message_id)
+                send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
             user.update_param(chat_id, 'session', {'state': 0})
             user.update_param(chat_id, 'keyboard', {'step': choice})
-            text = get_translation('OK', locale)
-            btn_list = 'menu'
+            text = get_acc_info(chat_id)
+            btn_list = btn_list_list[state]
 
     elif rtype == 2:
         state = user.load_param(chat_id, 'session').get('state', 0)
-        btn_list = ((get_flag('RU'), get_flag('FR'), get_flag('UK'), get_flag('ZH')),
-                    (get_flag('EN'), get_flag('ES'), get_flag('BE'), get_flag('KO')),
-                    (get_flag('DE'), get_flag('IT'), get_flag('KK'), get_flag('JA')))
+        btn_list = ((get_flag('RU'), get_flag('EN'), get_flag('UK'), get_flag('ZH')),
+                    (get_flag('DE'), get_flag('ES'), get_flag('BE'), get_flag('KO')),
+                    (get_flag('FR'), get_flag('IT'), get_flag('KK'), get_flag('JA')))
         if message == '':
             text = get_translation('locale', locale).capitalize()
             user.update_param(chat_id, 'session', {'state': 0})
@@ -85,7 +127,7 @@ def settings(chat_id, rtype, message=''):
         btn_list = 'menu'
         if message == '':
             text = get_translation('notifications', locale)
-            btn_list = ((get_translation('ON', locale), get_translation('OFF', locale)),)
+            btn_list = (('ON', 'OFF'),)
         elif message == 1:
             text = get_translation('notifications', locale) + ': ' + get_translation('ON', locale)
             user.set_notifications(chat_id, 1)
@@ -94,27 +136,35 @@ def settings(chat_id, rtype, message=''):
             user.set_notifications(chat_id, 0)
 
     elif rtype == 4 or rtype == 42:
-        text = get_translation('main menu', locale)
-        btn_list = ((get_translation('today', locale), get_translation('tomorrow', locale)),
-                    (get_translation('yesterday', locale), get_translation('another day', locale)),
-                    (get_translation('config', locale), get_translation('about', locale)))
+        text = ': : ' + get_translation('main menu', locale) + ' : :'
+        btn_list = (('today', 'tomorrow'),
+                    ('yesterday', 'another day'),
+                    ('config', 'about'))
     else:
         text = get_acc_info(chat_id)
 
     if rtype == 42:
         user.update_param(chat_id, 'session', {'state': 4})
         text = get_translation('grateful', locale)
+        btn_list = ()
 
     if btn_list == 'menu':
-        btn_list = ((get_translation('language', locale)+' (Lang)', get_translation('keyboard', locale)),
-                    (get_translation('notifications', locale), get_translation('review', locale)),
-                    (get_translation('my favorites', locale), get_translation('main menu', locale)))
-
+        btn_list = (('language', 'keyboard'),
+                    ('notifications', 'review'),
+                    ('my favorites', 'main menu'))
     if btn_list:
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True,
-                                           row_width=len(btn_list[0]), one_time_keyboard=True)
+        if kbtype == 'regular':
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True,
+                                               row_width=len(btn_list[0]), one_time_keyboard=True)
+        else:
+            markup = types.InlineKeyboardMarkup(row_width=len(btn_list[0]))
+
         for btn_tuple in btn_list:
-            markup.add(*btn_tuple)
-        send_message(chat_id, text, markup=markup)
+            res = [get_button(btn, locale, kbtype=kbtype) for btn in btn_tuple]
+            markup.add(*res)
+
+        noedit = True if message == 'noedit' else False
+        smartsend(chat_id, text, markup, kbtype, noedit)
+
     else:
         send_message(chat_id, text)
