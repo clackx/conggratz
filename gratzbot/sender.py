@@ -7,6 +7,7 @@ from misc import bot, randpicture, search_entity
 from config import admin_id
 import user
 import elogger
+import settings
 from messages import get_translation
 
 
@@ -130,26 +131,12 @@ def parseday(chat_id, message):
         send_message(chat_id, '8===Э')
 
 
-def greetz(chat_id):
-    locale = user.load_param(chat_id, 'locale').get('primary')
-    text = get_translation('greetz', locale)
-    link = '<a href="{}">&#8205;</a>'.format(randpicture('greetz'))
-    send_message(chat_id, f'{text} {link}')
-    prehelp(chat_id, locale)
-
-
 def helps(chat_id):
     locale = user.load_param(chat_id, 'locale').get('primary')
-    text = get_translation('helptext', locale)
-    send_message(chat_id, text)
-    prehelp(chat_id, locale)
-
-
-def prehelp(chat_id, locale):
     if locale != 'ru':
-        send_message(chat_id, get_translation('rugreetz', 'ru'))
-    else:
-        send_message(chat_id, get_translation('rugreetz', 'en'))
+        locale = 'en'
+    send_message(chat_id, get_translation('prehelp', locale))
+    settings.settings(chat_id, 911, 0)
 
 
 def smartsend(chat_id, text, markup, kbtype, noedit=False):

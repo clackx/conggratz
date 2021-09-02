@@ -12,8 +12,7 @@ import user
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV command /start')
     user.start(message.from_user)
-    sender.greetz(message.chat.id)
-    settings.settings(message.chat.id, 4)
+    sender.helps(message.chat.id)
 
 
 @bot.message_handler(commands=["menu"])
@@ -38,7 +37,7 @@ def docall(message):
 
 
 @bot.message_handler(commands=["day"])
-@bot.message_handler(regexp=re_join('today'))
+@bot.message_handler(regexp=re_join('today', ['brief']))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF TODAY')
     sender.send_gratz_brief(message.chat.id, birthday_from_offset(0), noedit=True)
@@ -93,6 +92,7 @@ def docall(message):
     settings.settings(message.chat.id, 1, message.text)
 
 
+@bot.message_handler(commands=['lang'])
 @bot.message_handler(regexp=re_join('language'))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} STT LOCALE')
@@ -156,17 +156,31 @@ def docall(message):
     sender.send_gratz_shift(message.chat.id, +1, noedit=True)
 
 
-@bot.message_handler(regexp='^rw|<<rw$')
+@bot.message_handler(regexp='^rw|bw|<<rw$')
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} SRV backward <<RW')
     sender.delete_message(message.chat.id, message.id)
     sender.send_gratz_shift(message.chat.id, -1)
 
 
-@bot.message_handler(regexp=re_join('about'))
+@bot.message_handler(regexp=re_join('help'))
 def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF ABOUT')
-    sender.greetz(message.chat.id)
+    elogger.preinfo(f'<< {message.chat.id} INF HELP')
+    settings.settings(message.chat.id, 911, 0)
+
+
+@bot.message_handler(regexp='^next$')
+def docall(message):
+    elogger.preinfo(f'<< {message.chat.id} INF TOUR')
+    sender.delete_message(message.chat.id, message.id)
+    settings.settings(message.chat.id, 911)
+
+
+@bot.message_handler(regexp='^\(skip\)|skip$')
+def docall(message):
+    elogger.preinfo(f'<< {message.chat.id} INF SKIP')
+    sender.delete_message(message.chat.id, message.id)
+    settings.settings(message.chat.id, 911, 8)
 
 
 # all text messages handler
@@ -200,7 +214,6 @@ def docall(query):
         else:
             sender.send_info(query.message.chat.id, clarify)
     if button == 'sets':
-        print('sets:', clarify)
         sender.answer_callback_query(query.id)
         if clarify in ('2', '4', '6', '8', '10'):
             settings.settings(query.message.chat.id, 1, clarify)
@@ -224,7 +237,12 @@ def docall(query):
             settings.settings(query.message.chat.id, 3, 1)
         elif clarify == 'OFF':
             settings.settings(query.message.chat.id, 3, 2)
-
+        elif clarify == 'help':
+            settings.settings(query.message.chat.id, 911, 0)
+        elif clarify == 'next':
+            settings.settings(query.message.chat.id, 911)
+        elif clarify == '(skip)':
+            settings.settings(query.message.chat.id, 911, 8)
         elif clarify == 'today':
             sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(0))
         elif clarify == 'tomorrow':
@@ -235,5 +253,3 @@ def docall(query):
             sender.send_anotherdaytext(query.message.chat.id)
         elif clarify == 'my_favorites':
             sender.send_likees(query.message.chat.id)
-        elif clarify == 'about':
-            sender.greetz(query.message.chat.id)

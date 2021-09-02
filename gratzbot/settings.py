@@ -1,7 +1,8 @@
 from telebot import types
 from getter import get_acc_info, get_flag
 from messages import get_translation
-from sender import send_message, delete_message, smartsend
+from sender import send_message, delete_message, smartsend, send_gratz_brief
+from misc import birthday_from_offset
 import user
 
 
@@ -98,9 +99,9 @@ def settings(chat_id, rtype, message=''):
 
     elif rtype == 2:
         state = user.load_param(chat_id, 'session').get('state', 0)
-        btn_list = ((get_flag('RU'), get_flag('EN'), get_flag('UK'), get_flag('ZH')),
-                    (get_flag('DE'), get_flag('ES'), get_flag('BE'), get_flag('KO')),
-                    (get_flag('FR'), get_flag('IT'), get_flag('KK'), get_flag('JA')))
+        btn_list = ((get_flag('RU'), get_flag('EN'), get_flag('ES'), get_flag('ZH')),
+                    (get_flag('BE'), get_flag('UK'), get_flag('DE'), get_flag('KO')),
+                    (get_flag('KK'), get_flag('IT'), get_flag('FR'), get_flag('JA')))
         if message == '':
             text = get_translation('locale', locale).capitalize()
             user.update_param(chat_id, 'session', {'state': 0})
@@ -139,7 +140,7 @@ def settings(chat_id, rtype, message=''):
         text = ': : ' + get_translation('main menu', locale) + ' : :'
         btn_list = (('today', 'tomorrow'),
                     ('yesterday', 'another day'),
-                    ('config', 'about'))
+                    ('config', 'help'))
     else:
         text = get_acc_info(chat_id)
 
@@ -147,6 +148,24 @@ def settings(chat_id, rtype, message=''):
         user.update_param(chat_id, 'session', {'state': 4})
         text = get_translation('grateful', locale)
         btn_list = ()
+
+    if rtype == 911:
+        if message == 0:
+            helpstate = 0
+        elif message == 8:
+            helpstate = 9
+        else:
+            helpstate = user.load_param(chat_id, 'session').get('state', 0)
+        text = get_translation(f'tour{helpstate}', locale).replace('\n', '\n\n\t')
+        text += f' <a href="https://conggratz.ru/stati/tour{helpstate}.png">&#8205;</a>'
+        btn_list = (('(skip)', 'next'),)
+        if helpstate > 8:
+            text = get_translation('endhelp', locale)
+            send_message(chat_id, text)
+            user.update_param(chat_id, 'session', {'state': 0})
+            send_gratz_brief(chat_id, birthday_from_offset(0))
+            return
+        user.update_param(chat_id, 'session', {'state': helpstate + 1})
 
     if btn_list == 'menu':
         btn_list = (('language', 'keyboard'),
