@@ -20,7 +20,7 @@ def _set_settings(user_id, settings):
 
 def _init_user(user_id, locale='ru', altale='en', day='04.01'):
     settings = {'locale': {'primary': locale, 'altern': altale},
-                'keyboard': {'keys': 4, 'entries': 6, 'step': 4, 'type': 'regular'},
+                'keyboard': {'keys': 4, 'entries': 6, 'step': 4, 'type': 'inline'},
                 'session': {'message_id': 1, 'offset': 0, 'state': 0, 'bday': day}}
     _set_settings(user_id, settings)
     return settings
@@ -51,6 +51,8 @@ def start(from_user):
         _init_user(user_id, locale, altale, nowtime.strftime('%m.%d'))
         maindb.ident_user(user_id, regname, regtime, json.dumps(ident_dict, ensure_ascii=False))
         elogger.preinfo(f'__ {from_user.id} INF JOIN US AS @{uname} :: {flname}, {locale}')
+    else:
+        set_notifications(user_id, 1)
 
 
 def load_param(userid, param):
