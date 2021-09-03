@@ -34,7 +34,10 @@ def start(from_user):
         fname = from_user.first_name if from_user.first_name else ''
         lname = from_user.last_name if from_user.last_name else ''
         flname = f'{fname} {lname}'.lstrip().rstrip()
+        regname = flname
+        regname += f' ({uname})' if uname else ' (nousername)'
         nowtime = datetime.datetime.now()
+        regtime = nowtime.strftime("%d.%m.%Y %H:%M:%S")
         ident_dict = {'locale': locale, 'uname': uname, 'flname': flname, 'regtime': int(nowtime.strftime('%s'))}
 
         locales_list = ['en', 'ru', 'be', 'uk', 'kk', 'de', 'fr', 'es', 'it', 'zh', 'ko', 'ja']
@@ -46,7 +49,7 @@ def start(from_user):
             altale = 'en'
 
         _init_user(user_id, locale, altale, nowtime.strftime('%m.%d'))
-        maindb.ident_user(user_id, json.dumps(ident_dict, ensure_ascii=False))
+        maindb.ident_user(user_id, regname, regtime, json.dumps(ident_dict, ensure_ascii=False))
         elogger.preinfo(f'__ {from_user.id} INF JOIN US AS @{uname} :: {flname}, {locale}')
 
 
