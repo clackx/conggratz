@@ -160,6 +160,7 @@ def send_message(chat_id, message, markup=''):
     try:
         message_id = bot.send_message(chat_id, message, reply_markup=markup,
                                       parse_mode='html', disable_notification=True).message_id
+
     except telebot.apihelper.ApiTelegramException as e:
         elogger.warn(f'! TELE API: {e}')
         err_num_str = str(e)[60:63]

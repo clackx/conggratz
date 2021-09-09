@@ -1,7 +1,9 @@
 import sqlite3
 import threading
-from config import DBNAME
+from config import DBUSER, DBNAME
 import elogger
+import psycopg2
+from psycopg2 import Error
 
 lock = threading.Lock()
 
@@ -20,31 +22,42 @@ class Mdb:
     (ALL, ONE) = (8, 0)
 
     def __init__(self):
-        self.connection = sqlite3.connect(DBNAME, check_same_thread=False)
-        self.cursor = self.connection.cursor()
+        try:
+            self.connection = psycopg2.connect(user=DBUSER, database=DBNAME,
+                                               host="127.0.0.1", port="5432")
+            self.cursor = self.connection.cursor()
+        except (Exception, Error) as error:
+            elogger.error(f'!! postgres error :: {str(error)}')
+        finally:
+            if self.connection:
+                elogger.preinfo('[] PostgreSQL 8:==э connected')
 
     def try_fetch(self, query, qtype):
         with lock:
             with self.connection:
                 try:
                     if qtype == Mdb.ALL:
-                        data = self.cursor.execute(query).fetchall()
+                        self.cursor.execute(query)
+                        data = self.cursor.fetchall()
                     elif qtype == Mdb.ONE:
-                        data = self.cursor.execute(query).fetchone()
+                        self.cursor.execute(query)
+                        data = self.cursor.fetchone()
                         if data:
                             data = data[0]
                 except sqlite3.OperationalError as e:
                     elogger.error(f'!! sqlite3 OperationalError :: {str(e)}')
                     return
+                except (Exception, Error) as error:
+                    elogger.error(f'!! postgres error :: {str(error)}')
+                    return
                 elogger.exiter(f'[OK] {len(data) if data else 0} elms {len(str(data))} chrs', data)
             return data
 
-    def try_commit(self, queries):
+    def try_commit(self, query):
         with lock:
             with self.connection:
                 try:
-                    for query in queries:
-                        self.cursor.execute(query)
+                    self.cursor.execute(query)
                     self.connection.commit()
                     return True
                 except sqlite3.OperationalError as e:
@@ -53,20 +66,18 @@ class Mdb:
                 except sqlite3.IntegrityError as e:
                     elogger.warn(f'!! sqlite3 IntegrityError :: {str(e)}')
                     return False
+                except (Exception, Error) as error:
+                    elogger.error(f'!! postgres error :: {str(error)}')
+                    return False
 
     def get_day_intro(self, bdate, locale, offset, count):
         elogger.enter(f'^^ get_day_intro {bdate} in ({locale}) locale with offset {offset}')
-        query = f'SELECT {locale}wde FROM presorted WHERE bday="{bdate}" LIMIT {count} OFFSET {offset}'
+        query = f"SELECT {locale}wde FROM presorted WHERE bday='{bdate}' LIMIT {count} OFFSET {offset}"
         return self.try_fetch(query, Mdb.ALL)
 
     def get_ids_by_name(self, name):
         elogger.enter(f'^^ get_people {name}')
-        query = f'SELECT wdentity FROM people WHERE links LIKE "%{name}%"'
-        return self.try_fetch(query, Mdb.ALL)
-
-    def get_unequivocal_wdid(self, id_list):
-        elogger.enter(f'^^ get_unequivocal_wdid || ids: {len(id_list)}')
-        query = f'SELECT wdentity, MAX(qrank) FROM people WHERE wdentity IN {to_tuple_string(id_list)}'
+        query = f"SELECT wdentity, qrank FROM people WHERE tsv @@ to_tsquery('{name}')"
         return self.try_fetch(query, Mdb.ONE)
 
     def get_universal(self, utypename, wdentities):
@@ -81,7 +92,7 @@ class Mdb:
 
     def get_photo(self, wdid):
         elogger.enter(f'^^ get_photo {wdid}')
-        query = f'SELECT photo FROM people WHERE wdentity="{wdid}"'
+        query = f"SELECT photo FROM people WHERE wdentity='{wdid}'"
         return self.try_fetch(query, Mdb.ONE)
 
     def get_emojis(self, entities):
@@ -91,7 +102,7 @@ class Mdb:
                 'FROM tags t INNER JOIN occupations o ' \
                 'ON t.occupation_entity = o.occu_entity ' \
                 f'WHERE t.people_entity IN  {entity_list} ' \
-                'ORDER BY t.ROWID'
+                'ORDER BY t._id'
         return self.try_fetch(query, Mdb.ALL)
 
     def get_tags(self, wdentity):
@@ -99,13 +110,13 @@ class Mdb:
         query = 'SELECT t.occupation_entity, o.emoji ' \
                 'FROM tags t INNER JOIN occupations o ' \
                 'ON t.occupation_entity = o.occu_entity ' \
-                f'WHERE t.people_entity="{wdentity}" ORDER BY t.ROWID'
+                f"WHERE t.people_entity='{wdentity}' ORDER BY t._id"
         return self.try_fetch(query, Mdb.ALL)
 
     def get_flags(self, wdentity):
         query = 'SELECT countries.people_entity, flags.emoji_flag FROM flags ' \
                 'JOIN countries ON countries.country_entity = flags.country_entity ' \
-                f'WHERE countries.people_entity = "{wdentity}"'
+                f"WHERE countries.people_entity = '{wdentity}'"
         return self.try_fetch(query, Mdb.ALL)
 
     def get_entities(self, entities):
@@ -115,7 +126,7 @@ class Mdb:
 
     def set_entities(self, entities):
         elogger.debug(f'set_entitites {entities}')
-        query = (f"INSERT OR IGNORE INTO tags (people_entity, occupation_entity) VALUES {str(entities)[1:-1]}", )
+        query = f"INSERT INTO tags (people_entity, occupation_entity) VALUES {str(entities)[1:-1]}"
         return self.try_commit(query)
 
     def get_user(self, userid):
@@ -125,15 +136,19 @@ class Mdb:
 
     def set_user(self, userid, settings):
         elogger.debug(f'set_user {userid}')
-        queries = (f"INSERT OR IGNORE INTO users (userid, status, settings) VALUES ({userid}, '1', '{settings}')",
-                   f"UPDATE users SET settings='{settings}' WHERE userid={userid}")
-        return self.try_commit(queries)
+        query = f"INSERT INTO users (userid, status, settings) VALUES ({userid}, '1', '{settings}')"
+        return self.try_commit(query)
+
+    def set_sets(self, userid, settings):
+        elogger.debug(f'set_settings {userid}')
+        query = f"UPDATE users SET settings='{settings}' WHERE userid={userid}"
+        return self.try_commit(query)
 
     def ident_user(self, userid, regname, regtime, settings):
         elogger.debug(f'ident_user {userid}')
-        queries = (f"UPDATE users SET regname='{regname}', regtime='{regtime}', "
-                   f"identity='{settings}' WHERE userid={userid}",)
-        return self.try_commit(queries)
+        query = f"UPDATE users SET regname='{regname}', regtime='{regtime}', " \
+                  f"identity='{settings}' WHERE userid={userid}"
+        return self.try_commit(query)
 
     def get_notication_requiring(self):
         elogger.enter('get noti')
@@ -142,17 +157,17 @@ class Mdb:
 
     def set_notifications(self, userid, tumbler):
         elogger.debug(f'set_noti {userid} {tumbler}')
-        query = (f"UPDATE users SET status={tumbler} WHERE userid={userid}", )
+        query = f"UPDATE users SET status={tumbler} WHERE userid={userid}"
         return self.try_commit(query)
 
     def get_allfav(self, userid):
         elogger.enter(f'^^ get_likees {userid}')
-        query = f"SELECT wdid FROM facetable WHERE userid={userid} ORDER BY ROWID"
+        query = f"SELECT wdid FROM facetable WHERE userid={userid}"
         return self.try_fetch(query, Mdb.ALL)
 
     def add_to_fav(self, userid, wdid):
         elogger.debug(f'add to fav {userid} {wdid}')
-        query = (f"INSERT INTO facetable VALUES ({userid}, '{wdid}')", )
+        query = f"INSERT INTO facetable VALUES ({userid}, '{wdid}')"
         return self.try_commit(query)
 
 

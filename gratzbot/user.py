@@ -15,13 +15,14 @@ def _get_settings(user_id):
 
 def _set_settings(user_id, settings):
     memdb.update_settings(user_id, json.dumps(settings))
-    maindb.set_user(user_id, json.dumps(settings))
+    maindb.set_sets(user_id, json.dumps(settings))
 
 
 def _init_user(user_id, locale='ru', altale='en', day='04.01'):
     settings = {'locale': {'primary': locale, 'altern': altale},
                 'keyboard': {'keys': 4, 'entries': 6, 'step': 4, 'type': 'inline'},
                 'session': {'message_id': 1, 'offset': 0, 'state': 0, 'bday': day}}
+    maindb.set_user(user_id, json.dumps(settings))
     _set_settings(user_id, settings)
     return settings
 
