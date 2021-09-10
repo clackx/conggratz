@@ -1,13 +1,31 @@
 import datetime
-import sqlite3
-from config import abspth
+from config import DBUSER, DBNAME
+import psycopg2
 
-connection = sqlite3.connect(abspth+'/logvrotate.sqlite', check_same_thread=False)
-cursor = connection.cursor()
+
+class Evdb:
+    def __init__(self):
+        try:
+            self.connection = psycopg2.connect(user=DBUSER, database=DBNAME,
+                                               host="127.0.0.1", port="5432")
+            self.cursor = self.connection.cursor()
+            print('[ evdb connection ok ]')
+        except (Exception, psycopg2.Error) as error:
+            print('connection failed with', error)
+
+    def add_to_events(self, tstamp, thuman, evt, usr, txt):
+        query = f"INSERT INTO events VALUES (%s, %s, %s, %s, %s)"
+        values = (tstamp, thuman, evt, usr, txt)
+        try:
+            self.cursor.execute(query, values)
+            self.connection.commit()
+        except (Exception, psycopg2.Error) as error:
+            print('insertion failed with', error)
 
 
 def echo(message):
-    timenow = int(datetime.datetime.now().strftime('%s'))
+    tstamp = int(datetime.datetime.now().strftime('%s'))
+    thuman = datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S')
     if message[0] == 'I':
         usr = message.split()[2]
         evt = message.split()[3]
@@ -23,12 +41,7 @@ def echo(message):
     else:
         (evt, usr, txt) = ('', '', '')
 
-    try:
-        connection.execute(f'INSERT INTO events VALUES ({timenow}, "{evt}", "{usr}", "{txt}")')
-        connection.commit()
-    except sqlite3.ProgrammingError as e:
-        print(e)
-    except sqlite3.OperationalError as e:
-        print(e)
+    evdb.add_to_events(tstamp, thuman, evt, usr, txt)
 
 
+evdb = Evdb()

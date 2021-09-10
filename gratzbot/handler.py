@@ -186,7 +186,7 @@ def docall(message):
 # all text messages handler
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF MESSAGE {message.text}')
+    elogger.preinfo(f'<< {message.chat.id} MSG MESSAGE {message.text}')
     if message.text == chr(12951):
         sender.send_message(message.chat.id, chr(129395))
     else:
@@ -196,14 +196,16 @@ def docall(message):
 # inline keyboard buttons handler
 @bot.callback_query_handler(func=lambda call: True)
 def docall(query):
-    elogger.preinfo(f'<< {query.message.chat.id} INF BUTTON {query.data}')
     button = query.data[:4]
     clarify = query.data[5:]
     if button == 'like':
+        elogger.preinfo(f'<< {query.message.chat.id} SRV LIKE {clarify}')
         sender.save_liked(query.message.chat.id, clarify, query.id)
     if button == 'more':
+        elogger.preinfo(f'<< {query.message.chat.id} SRV MORE {clarify}')
         sender.send_more(query.message.chat.id, clarify, query.id)
     if button == 'info':
+        elogger.preinfo(f'<< {query.message.chat.id} INF BUTTON {clarify}')
         sender.answer_callback_query(query.id)
         if clarify == 'rw':
             sender.send_gratz_shift(query.message.chat.id, -1)
@@ -214,6 +216,7 @@ def docall(query):
         else:
             sender.send_info(query.message.chat.id, clarify)
     if button == 'sets':
+        elogger.preinfo(f'<< {query.message.chat.id} SRV BUTTON {clarify}')
         sender.answer_callback_query(query.id)
         if clarify in ('2', '4', '6', '8', '10'):
             settings.settings(query.message.chat.id, 1, clarify)
