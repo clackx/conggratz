@@ -77,7 +77,7 @@ class Mdb:
 
     def get_ids_by_name(self, name):
         elogger.enter(f'^^ get_people {name}')
-        query = f"SELECT wdentity, qrank FROM people WHERE tsv @@ to_tsquery('{name}')"
+        query = f"SELECT wdentity, qrank FROM people WHERE tsv @@ to_tsquery('{name}') ORDER BY qrank DESC"
         return self.try_fetch(query, Mdb.ONE)
 
     def get_universal(self, utypename, wdentities):
