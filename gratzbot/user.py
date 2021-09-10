@@ -2,6 +2,7 @@ import json
 import elogger
 from mdb import maindb, memdb
 import datetime
+from re import sub
 
 
 def _get_settings(user_id):
@@ -35,6 +36,7 @@ def start(from_user):
         fname = from_user.first_name if from_user.first_name else ''
         lname = from_user.last_name if from_user.last_name else ''
         flname = f'{fname} {lname}'.lstrip().rstrip()
+        flname = sub(r"[-()\]\[\"'#/@;:<>{}`+=~|.!?,$]", "_", flname)
         regname = flname
         regname += f' ({uname})' if uname else ' (nousername)'
         nowtime = datetime.datetime.now()
@@ -51,7 +53,7 @@ def start(from_user):
 
         _init_user(user_id, locale, altale, nowtime.strftime('%m.%d'))
         maindb.ident_user(user_id, regname, regtime, json.dumps(ident_dict, ensure_ascii=False))
-        elogger.preinfo(f'__ {from_user.id} INF JOIN US AS @{uname} :: {flname}, {locale}')
+        elogger.preinfo(f'__ {from_user.id} GRTZ JOIN US AS @{uname} :: {flname}, {locale}')
     else:
         set_notifications(user_id, 1)
 
