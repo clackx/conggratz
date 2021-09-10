@@ -1,7 +1,7 @@
 from telebot import types
 from getter import get_acc_info, get_flag
 from messages import get_translation
-from sender import send_message, delete_message, smartsend, send_gratz_brief
+from sender import send_message, smartsend, send_gratz_brief
 from misc import birthday_from_offset
 import user
 
@@ -43,7 +43,6 @@ def settings(chat_id, rtype, message=''):
         if message.lower() in ('inline', 'regular'):
             kbtype = message.lower()
             user.update_param(chat_id, 'keyboard', {'type': kbtype})
-            delete_message(chat_id, prev_sets_mess_id)
             send_message(chat_id, transl_list[0] + kbtype)
             state = 1
         elif message == '':
@@ -64,7 +63,6 @@ def settings(chat_id, rtype, message=''):
             if choice not in btn_list_list[state - 1]:
                 choice = '6'
             if kbtype != 'inline':
-                delete_message(chat_id, prev_message_id)
                 send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
             user.update_param(chat_id, 'session', {'state': state + 1})
             user.update_param(chat_id, 'keyboard', {'keys': choice})
@@ -77,7 +75,6 @@ def settings(chat_id, rtype, message=''):
             if int(choice) < int(keynum):
                 choice = keynum
             if kbtype != 'inline':
-                delete_message(chat_id, prev_message_id)
                 send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
             user.update_param(chat_id, 'session', {'state': state + 1})
             user.update_param(chat_id, 'keyboard', {'entries': choice})
@@ -90,7 +87,6 @@ def settings(chat_id, rtype, message=''):
             if int(choice) > int(keynum):
                 choice = keynum
             if kbtype != 'inline':
-                delete_message(chat_id, prev_message_id)
                 send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
             user.update_param(chat_id, 'session', {'state': 0})
             user.update_param(chat_id, 'keyboard', {'step': choice})

@@ -193,12 +193,13 @@ def edit_message(chat_id, message_id, text, markup=''):
 
 
 def delete_message(chat_id, message_id):
-    try:
-        bot.delete_message(chat_id=chat_id, message_id=message_id)
-    except telebot.apihelper.ApiTelegramException as e:
-        elogger.warn(f'! TELE API: {e}')
-    except requests.exceptions.ConnectionError as e:
-        elogger.warn(f'! REQUESTS: {e}')
+    if message_id:
+        try:
+            bot.delete_message(chat_id=chat_id, message_id=message_id)
+        except telebot.apihelper.ApiTelegramException as e:
+            elogger.warn(f'! TELE API: {e}')
+        except requests.exceptions.ConnectionError as e:
+            elogger.warn(f'! REQUESTS: {e}')
 
 
 def answer_callback_query(query_id):
