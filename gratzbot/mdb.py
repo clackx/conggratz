@@ -162,13 +162,18 @@ class Mdb:
 
     def get_allfav(self, userid):
         elogger.enter(f'^^ get_likees {userid}')
-        query = f"SELECT wdid FROM facetable WHERE userid={userid}"
+        query = f"SELECT wdid FROM facetable WHERE userid={userid} ORDER by bday ASC"
         return self.try_fetch(query, Mdb.ALL)
 
-    def add_to_fav(self, userid, wdid):
-        elogger.debug(f'add to fav {userid} {wdid}')
-        query = f"INSERT INTO facetable VALUES ({userid}, '{wdid}')"
+    def add_to_fav(self, userid, wdid, bday):
+        elogger.debug(f'add_to_fav {userid} {wdid} {bday}')
+        query = f"INSERT INTO facetable VALUES ({userid}, '{wdid}', '{bday}')"
         return self.try_commit(query)
+
+    def get_bday(self, wdid):
+        elogger.debug(f'^^ get_bday {wdid}')
+        query = f"SELECT bdate FROM people WHERE wdentity='{wdid}'"
+        return self.try_fetch(query, Mdb.ONE)
 
 
 class Memdb:

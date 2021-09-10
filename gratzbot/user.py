@@ -73,7 +73,11 @@ def set_notifications(user_id, tumbler):
 
 
 def add_to_fav(userid, wdid):
-    return maindb.add_to_fav(userid, wdid)
+    if wdid in sum(maindb.get_allfav(userid), ()):
+        return False
+    else:
+        bday = maindb.get_bday(wdid)
+        return maindb.add_to_fav(userid, wdid, bday)
 
 
 def what():
