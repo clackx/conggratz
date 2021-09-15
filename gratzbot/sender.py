@@ -162,18 +162,25 @@ def send_message(chat_id, message, markup=''):
                                       parse_mode='html', disable_notification=True).message_id
 
     except telebot.apihelper.ApiTelegramException as e:
-        elogger.warn(f'! TELE API: {e}')
-        err_num_str = str(e)[60:63]
-        if err_num_str == '429':
-            sleep(3)
+        err_num = e.result_json.get('error_code', 0)
+        err_dcr = e.result_json.get('description', '')
+        elogger.warn(f'{chat_id} ! TelegrAPI error {err_num} :: {err_dcr}')
+        if err_num == 429:
+            retry_after = 1
+            if err_dcr[:17] == 'Too Many Requests':
+                err_param = e.result_json.get('parameters', '')
+                if err_param:
+                    retry_after = err_param.get('retry_after', 2)
+            sleep(retry_after)
             send_message(chat_id, message, markup)
-        elif err_num_str == '403':
+        elif (err_num == 400 and err_dcr == 'Bad Request: chat not found') or \
+             (err_num == 403 and err_dcr == 'Forbidden: bot was blocked by the user'):
             elogger.preinfo(f'-- {chat_id} SRV user disabled')
             user.set_notifications(chat_id, 0)
         else:
-            print('Error', err_num_str)
+            print('Error', err_num, err_dcr)
     except requests.exceptions.ConnectionError as e:
-        elogger.warn(f'! REQUESTS: {e}')
+        elogger.warn(f'{chat_id} ! REQUESTS: {e}')
     if message_id:
         user.update_param(chat_id, 'session', {'message_id': message_id})
     return message_id
@@ -186,9 +193,13 @@ def edit_message(chat_id, message_id, text, markup=''):
                               parse_mode="html", reply_markup=markup)
         is_successful = True
     except telebot.apihelper.ApiTelegramException as e:
-        elogger.warn(f'! TELE API: {e}')
+        err_num = e.result_json.get('error_code', 0)
+        err_dcr = e.result_json.get('description', '')
+        if err_dcr[85: 105] == 'are exactly the same':
+            err_dcr = err_dcr[:38] + 'every day' + err_dcr[88: 105]
+        elogger.warn(f'{chat_id} ! TelegrAPI error {err_num} :: {err_dcr}')
     except requests.exceptions.ConnectionError as e:
-        elogger.warn(f'! REQUESTS: {e}')
+        elogger.warn(f'{chat_id} ! REQUESTS: {e}')
     return is_successful
 
 
@@ -197,9 +208,11 @@ def delete_message(chat_id, message_id):
         try:
             bot.delete_message(chat_id=chat_id, message_id=message_id)
         except telebot.apihelper.ApiTelegramException as e:
-            elogger.warn(f'! TELE API: {e}')
+            err_num = e.result_json.get('error_code', 0)
+            err_dcr = e.result_json.get('description', '')
+            elogger.warn(f'{chat_id} ! TelegrAPI error {err_num} :: {err_dcr}')
         except requests.exceptions.ConnectionError as e:
-            elogger.warn(f'! REQUESTS: {e}')
+            elogger.warn(f'{chat_id} ! REQUESTS: {e}')
 
 
 def answer_callback_query(query_id):
@@ -207,6 +220,8 @@ def answer_callback_query(query_id):
         try:
             bot.answer_callback_query(query_id)
         except telebot.apihelper.ApiTelegramException as e:
-            elogger.warn(f'! TELE API: {e}')
+            err_num = e.result_json.get('error_code', 0)
+            err_dcr = e.result_json.get('description', '')
+            elogger.warn(f'{query_id} ! TelegrAPI error {err_num} :: {err_dcr}')
         except requests.exceptions.ConnectionError as e:
-            elogger.warn(f'! REQUESTS: {e}')
+            elogger.warn(f'{query_id} ! REQUESTS: {e}')
