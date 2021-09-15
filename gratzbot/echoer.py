@@ -13,19 +13,26 @@ class Evdb:
         except (Exception, psycopg2.Error) as error:
             print('connection failed with', error)
 
-    def add_to_events(self, tstamp, thuman, evt, usr, txt):
-        query = f"INSERT INTO events VALUES (%s, %s, %s, %s, %s)"
-        values = (tstamp, thuman, evt, usr, txt)
+    def try_commit(self, query, values):
         try:
             self.cursor.execute(query, values)
             self.connection.commit()
         except (Exception, psycopg2.Error) as error:
             print('insertion failed with', error)
 
+    def add_to_events(self, tstamp, evt, usr, txt):
+        query = f"INSERT INTO events VALUES (to_timestamp(%s), %s, %s, %s)"
+        values = (tstamp, evt, usr, txt)
+        self.try_commit(query, values)
+
+    def add_datawarn(self, entity, message):
+        query = f"INSERT INTO datawarn VALUES (%s, %s) ON CONFLICT DO NOTHING"
+        values = (entity, message)
+        self.try_commit(query, values)
+
 
 def echo(message):
-    tstamp = int(datetime.datetime.now().strftime('%s'))
-    thuman = datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S')
+    tstamp = datetime.datetime.now().strftime('%s.%f')
     if message[0] == 'I':
         usr = message.split()[2]
         evt = message.split()[3]
@@ -41,7 +48,14 @@ def echo(message):
     else:
         (evt, usr, txt) = ('', '', '')
 
-    evdb.add_to_events(tstamp, thuman, evt, usr, txt)
+    evdb.add_to_events(tstamp, evt, usr, txt)
+
+
+def dwarn(message):
+    strips = message.split()
+    entity = strips[0]
+    message = message[len(entity)+1:]
+    evdb.add_datawarn(entity, message)
 
 
 evdb = Evdb()

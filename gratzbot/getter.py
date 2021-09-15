@@ -68,7 +68,7 @@ def get_notional_value(data_dict, locale, altale):
                     if value:
                         break
                 if not value:
-                    elogger.warn(f'No data in {data_dict}')
+                    elogger.datawarn(f'(dict) No data in {data_dict}')
     return key, value
 
 
@@ -98,10 +98,10 @@ def get_universal(utypename, wdentities, locale, altale):
             # preloaded db needs no outer requests
             key = locale
             if not value:
-                elogger.warn(f'{wdentity} has no {key} in {utypename}')
+                elogger.datawarn(f'{wdentity} has no {key} in {utypename}')
                 key, value = get_notional_value(descr_dict, locale, altale)
                 if not value:
-                    elogger.warn(f'{wdentity} has no description at all !!')
+                    elogger.datawarn(f'{wdentity} has no description at all !!')
                     value = '--nodata--'
 
             result_dict[wdentity] = (key, value)
@@ -227,7 +227,7 @@ def get_day_info(bday, locale, altale, offset, count, debug=False):
                 tag = tagdixt.get(wdentity, chr(8265))
                 ftag = get_first_emoji(tag)
                 if tag == chr(8265):
-                    elogger.warn(f'{wdentity} ({name}) has no tags')
+                    elogger.datawarn(f'{wdentity} ({name}) has no tags')
                 res_names.append(name)
                 res_text += f' {flag}{ftag} : : {name}\n{desc}\n\n'
 
@@ -431,7 +431,7 @@ def find_properties(wdid, locale, altale):
                 entities = [prop, ]
                 for entry in claims[prop]:
                     if 'datavalue' not in entry['mainsnak']:
-                        elogger.warn(f" {prop} no value in {entry['mainsnak']}")
+                        elogger.datawarn(f"{prop} no value in {entry['mainsnak']}")
                         continue
                     entry_value = entry['mainsnak']['datavalue']['value']
                     if type(entry_value) == dict:
@@ -451,11 +451,11 @@ def find_properties(wdid, locale, altale):
             for request in grequests.map(reqs):
                 if request.status_code == 200:
                     r = request.json()
+                    propindx += 1
+                    prop = propses[propindx]
                     if 'error' in r:
-                        elogger.warn(f"!! {r['error']['code']} :: {r['error']['info']}")
+                        elogger.datawarn(f"{prop} prop of {wdid} :: {r['error']['code']} : {r['error']['info']}")
                     else:
-                        propindx += 1
-                        prop = propses[propindx]
                         entities = bigdict[prop]
                         values = []
                         for entity in entities:
