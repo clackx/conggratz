@@ -75,11 +75,14 @@ def set_notifications(user_id, tumbler):
 
 
 def add_to_fav(userid, wdid):
-    if wdid in sum(maindb.get_allfav(userid), ()):
-        return False
-    else:
+    elogger.enter(f'{userid} adding to fav {wdid}')
+    result = False
+    if wdid not in sum(maindb.get_allfav(userid), ()):
+        elogger.enter(f'{userid} gettin bday of {wdid}')
         bday = maindb.get_bday(wdid)
-        return maindb.add_to_fav(userid, wdid, bday)
+        result = maindb.add_to_fav(userid, wdid, bday)
+    elogger.exiter(f'[OK]', result)
+    return result
 
 
 def what():

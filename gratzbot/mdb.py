@@ -64,7 +64,7 @@ class Mdb:
                     elogger.error(f'!! sqlite3 OperationalError :: {str(e)}')
                     return False
                 except sqlite3.IntegrityError as e:
-                    elogger.warn(f'!! sqlite3 IntegrityError :: {str(e)}')
+                    elogger.error(f'!! sqlite3 IntegrityError :: {str(e)}')
                     return False
                 except (Exception, Error) as error:
                     elogger.error(f'!! postgres error :: {str(error)}')

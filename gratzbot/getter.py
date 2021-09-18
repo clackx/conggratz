@@ -355,6 +355,7 @@ def get_flag(country, flagonly=False):
 
 
 def get_person_flag(wdentity):
+    elogger.enter(f'^^ get_person_flag of {wdentity}')
     flags = maindb.get_flags(wdentity)
     if not flags:
         return get_emoji_chars('U+1F5FA')

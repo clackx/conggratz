@@ -37,7 +37,7 @@ def docall(message):
 
 
 @bot.message_handler(commands=["day"])
-@bot.message_handler(regexp=re_join('today', ['brief']))
+@bot.message_handler(regexp=re_join('today', ['brief', 'day']))
 def docall(message):
     elogger.preinfo(f'<< {message.chat.id} INF TODAY')
     sender.send_gratz_brief(message.chat.id, birthday_from_offset(0), noedit=True)
@@ -153,6 +153,7 @@ def docall(message):
 
 @bot.message_handler(commands=["fw"])
 def docall(message):
+    elogger.preinfo(f'<< {message.chat.id} SRV command /fw')
     sender.send_gratz_shift(message.chat.id, +1, noedit=True)
 
 

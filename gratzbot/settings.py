@@ -65,7 +65,7 @@ def settings(chat_id, rtype, message=''):
             if kbtype != 'inline':
                 send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
             user.update_param(chat_id, 'session', {'state': state + 1})
-            user.update_param(chat_id, 'keyboard', {'keys': choice})
+            user.update_param(chat_id, 'keyboard', {'keys': int(choice)})
             text = transl_list[2]
             btn_list = (btn_list_list[2],)
         elif state == 3:
@@ -77,7 +77,7 @@ def settings(chat_id, rtype, message=''):
             if kbtype != 'inline':
                 send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
             user.update_param(chat_id, 'session', {'state': state + 1})
-            user.update_param(chat_id, 'keyboard', {'entries': choice})
+            user.update_param(chat_id, 'keyboard', {'entries': int(choice)})
             text = transl_list[state]
             btn_list = (btn_list_list[state],)
         elif state == 4:
@@ -89,7 +89,7 @@ def settings(chat_id, rtype, message=''):
             if kbtype != 'inline':
                 send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
             user.update_param(chat_id, 'session', {'state': 0})
-            user.update_param(chat_id, 'keyboard', {'step': choice})
+            user.update_param(chat_id, 'keyboard', {'step': int(choice)})
             text = get_acc_info(chat_id)
             btn_list = btn_list_list[state]
 
