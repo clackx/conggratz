@@ -1,12 +1,14 @@
-import telebot
 import datetime
 import hashlib
 import random
 import re
 import config
 from mdb import maindb
+from aiogram import Bot, Dispatcher
 
-bot = telebot.TeleBot(config.API_TOKEN)
+
+bot = Bot(token=config.API_TOKEN)
+dp = Dispatcher(bot)
 
 
 def get_wc_thumb(photo, width=420):
@@ -35,12 +37,12 @@ def randpicture(rtype):
     return link
 
 
-def search_entity(search_str):
+async def search_entity(search_str):
     """ a lot of work taken over by postgres' full-text search """
     search_str = re.sub("[(\[].*?[)\]]", "", search_str)  # remove all in brackets
     search_str = re.sub(r"[-()\]\[\"'#/@;:<>{}`+=~|.!?,$]", " ", search_str)  # remove symbols
     search_str = '&'.join(search_str.strip().split()[:7])
-    wdid = maindb.get_ids_by_name(search_str)
+    wdid = await maindb.get_ids_by_name(search_str)
     return wdid
 
 

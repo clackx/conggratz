@@ -1,83 +1,113 @@
+import asyncio
 import time
 import settings
 import sender
 from config import admin_id
 import elogger
+import misc
+import getter
+from mdb import maindb
+from echoer import evdb
 
 elogger.enter('))) NOSERVER (((')
 
-chat_id = admin_id
+userid = admin_id
+# userid = 1931265886
+userid = 1146011385
 
 
-settings.settings(chat_id, 2, 'EN')
-sender.greetz(chat_id)
+async def main():
+    await evdb.connect()
+    await maindb.connect()
 
-# set RU locale, first run init user (table users)
-settings.settings(chat_id, 2, 'RU')
+    # print brief to console
+    text, _tmp1, _tmp2 = await getter.get_day_plus(userid, '09.09', 0)
+    print(text)
 
-# show info about ? with only cached tags (table tags)
-sender.send_info(chat_id, 'Douglas Adams')
+    # set EN locale and show 3 first pages of help
+    await settings.settings(userid, 2, 'EN')
+    await sender.helps(userid)
+    time.sleep(3)
+    await settings.settings(userid, 911)
+    time.sleep(3)
+    await settings.settings(userid, 911)
 
-# set EN locale
-settings.settings(chat_id, 2, 'RU')
-settings.settings(chat_id, 0)
-sender.send_info(chat_id, 'CG')
+    # send info about person
+    await sender.send_info(userid, 'Douglas Adams')
+    # and extended info
+    await sender.send_more(userid, 'Q42', 0)
+    # await sender.send_info(userid, 'Байнам, Эндрю')
+    # await sender.send_more(userid, 'Q314822', 0)
 
-# show info about ? with cached tags and cached occupations on previous request
-sender.send_info(chat_id, 'Дуглас Адамс')
+    # set FR locale
+    await settings.settings(userid, 2, 'FR')
+    # ALT locale set to ES
+    await settings.settings(userid, 2, '*ES')
+    # show settings
+    await settings.settings(userid, 0)
+    time.sleep(3)
 
-# show info without any cache data (at first run)
-sender.send_info(chat_id, 'Байнам, Эндрю')
+    # show info with new language settings
+    await sender.send_info(userid, '彭帅')
+    await sender.send_more(userid, 'Q229087', 0)
+    # await sender.send_info(userid, 'Aleksey Tolstoy')
+    # await sender.send_more(userid, 'Q192279', 0)
 
-# show persons born Feb, 28
-# it cache tags data, occupations and namelinks in chosen language
-sender.send_gratz_brief(chat_id, '02.28')
+    # brief: show persons born at Sept, 11
+    await sender.send_gratz_brief(userid, '11.11')
+    # await sender.send_gratz_brief(userid, '08.09')
 
-# second run takes about 10-100 times ?? less time to show persons born at Feb, 28
-sender.send_gratz_brief(chat_id, '02.28')
+    # navigate forward
+    await sender.send_gratz_shift(userid, +1)
+    time.sleep(2)
+    await sender.send_gratz_shift(userid, +1)
+    time.sleep(2)
+    await sender.send_gratz_shift(userid, +1)
+    time.sleep(2)
+    # and back
+    # await sender.send_gratz_shift(userid, -1)
+    # await sender.send_gratz_shift(userid, -1)
+    # await sender.send_gratz_shift(userid, -1)
+    # await sender.send_gratz_shift(userid, -1)
 
-sender.send_gratz_shift(chat_id, +1)
-time.sleep(2)
-sender.send_gratz_shift(chat_id, +1)
-time.sleep(2)
-sender.send_gratz_shift(chat_id, +1)
-time.sleep(2)
-# and back
-# sender.send_gratz_shift(chat_id, -1)
-# sender.send_gratz_shift(chat_id, -1)
-# sender.send_gratz_shift(chat_id, -1)
-# sender.send_gratz_shift(chat_id, -1)
+    # SETTINGS
 
-# SETTINGS
+    # change ui params
+    await settings.settings(userid, 1, '')
+    # Number of keys (must be even) ??
+    await settings.settings(userid, 1, '7')
+    # Number of entries (can't be less than keys (so it'll be fixed))
+    await settings.settings(userid, 1, '3')
+    # Value of step (must be even and can't be more than keys)
+    await settings.settings(userid, 1, '5')
 
-# change ui params
-settings.settings(chat_id, 1, '')
-# Number of keys (must be even) ??
-settings.settings(chat_id, 1, '7')
-# Number of entries (can't be less than keys (so it'll be fixed))
-settings.settings(chat_id, 1, '3')
-# Value of step (must be even and can't be more than keys)
-settings.settings(chat_id, 1, '5')
+    # continue navigate back and forth
+    await sender.send_gratz_shift(userid, -1)
+    time.sleep(2)
+    await sender.send_gratz_shift(userid, 1)
 
-# continue navigate back and forth
-sender.send_gratz_shift(chat_id, -1)
-time.sleep(2)
-sender.send_gratz_shift(chat_id, 1)
+    await settings.settings(userid, 1, 'regular')
+    time.sleep(2)
+    await sender.send_gratz_shift(userid, -1)
+    time.sleep(2)
+    await sender.send_gratz_shift(userid, -1)
+    time.sleep(2)
 
-# show your settings
-settings.settings(chat_id, 0)
+    # show your settings
+    await settings.settings(userid, 0)
+    time.sleep(3)
 
-# and continue navigate
-sender.send_gratz_shift(chat_id, -1)
-time.sleep(2)
-sender.send_gratz_shift(chat_id, -1)
+    await settings.settings(userid, 1, 'inline')
+    time.sleep(2)
+    # and continue navigate
+    await sender.send_gratz_shift(userid, -1)
+    time.sleep(2)
+    await sender.send_gratz_shift(userid, -1)
 
-# toggle everyday notification on/off
-settings.settings(chat_id, 3, 1)
-settings.settings(chat_id, 3, 0)
+    loop.stop()
+    elogger.exiter(')))', True)
 
-# sender.send_info(chat_id, 'Ягр, Яромир')
-# sender.send_info(chat_id, 'Aleksey Tolstoy')
-# sender.send_info(chat_id, '彭帅')
 
-elogger.exiter(')))', True)
+loop = asyncio.get_event_loop()
+asyncio.set_event_loop(loop)
+asyncio.run(main())

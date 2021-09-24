@@ -3,7 +3,6 @@ import threading
 from config import VERBOSE, LOGLEVEL, LOGTOFILE
 from echoer import echo, dwarn
 
-
 logger = logging.getLogger('gratzbot')
 formatter = logging.Formatter('[%(asctime)s] %(thread)d  '
                               '%(levelname)-7s %(message)s', '%m-%d %H:%M:%S')
@@ -55,7 +54,6 @@ def get_leading_braces():
 
 
 def enter(incoming_str):
-
     color = Colors.ENDC
     if incoming_str.find('links') != -1:
         color = Colors.Blue
@@ -75,7 +73,8 @@ def enter(incoming_str):
 
 
 def debug(incoming_str):
-    result_str = '├──╼ ' + incoming_str
+    result_str = '╟' if threads_dict.get(get_thread()) == 0 else '├'
+    result_str += '──╼ ' + incoming_str
     cascader(result_str, LEVEL0)
 
     if logger.getEffectiveLevel() == logging.INFO and VERBOSE:
@@ -99,22 +98,22 @@ def exiter(incoming_str, result):
         cascader(result_str, LEVELDOWN)
 
 
-def error(incoming_str):
-    echo('E ' + incoming_str)
+async def error(incoming_str):
+    await echo('E ' + incoming_str)
     res_str = get_leading_braces() + Colors.Blink + Colors.Bold + Colors.LightRed + Colors.Reverse \
               + '!! ' + incoming_str + Colors.ENDC
     logger.error(res_str)
 
 
-def warn(incoming_str):
-    echo('W ' + incoming_str)
+async def warn(incoming_str):
+    await echo('W ' + incoming_str)
     res_str = get_leading_braces() + Colors.Reverse + Colors.Yellow \
               + '! ' + incoming_str + Colors.ENDC
     logger.warning(res_str)
 
 
-def datawarn(incoming_str):
-    dwarn(incoming_str)
+async def datawarn(incoming_str):
+    await dwarn(incoming_str)
     res_str = get_leading_braces() + Colors.Reverse + Colors.Yellow \
               + '! ' + incoming_str + Colors.ENDC
     logger.warning(res_str)
@@ -123,24 +122,21 @@ def datawarn(incoming_str):
 def info(incoming_str):
     result_str = Colors.Bold + incoming_str + Colors.ENDC
     if logger.getEffectiveLevel() == logging.INFO:
-        logger.info('├──╼ ' + result_str[:120])
+        logger.info('╟──╼ ' + result_str[:120])
     else:
         cascader('├──┮ ' + result_str, LEVELUP)
 
 
-def preinfo(incoming_str):
-    echo('I ' + incoming_str)
+async def preinfo(incoming_str):
+    await echo('I ' + incoming_str)
     logger.info('╟─╼ ' + incoming_str)
 
 
 def cascader(incoming_str, level):
     result_str = get_leading_braces() + incoming_str[:120] + Colors.ENDC
     thread_id = get_thread()
-
     logger.debug(result_str)
-
     if logger.getEffectiveLevel() == logging.DEBUG:
         threads_dict[thread_id] += level
-
     if logger.getEffectiveLevel() == logging.DEBUG and threads_dict[thread_id] == 0:
-        logger.debug("╚=== LOGGIN' FINISHED ===")
+        logger.debug("║ ...")

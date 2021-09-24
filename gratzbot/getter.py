@@ -1,48 +1,42 @@
-import requests
-import grequests
+import aiohttp
+import asyncio
 import json
 from datetime import datetime
-from telebot import types
+from aiogram import types
 from mdb import maindb
 import user
 import elogger
 from misc import get_wc_thumb
 from messages import get_translation, get_dayname
 from config import admin_id
+from aiohttp import client_exceptions
 
 
-def please_request(url, params=''):
+async def please_request(url, params=''):
     """ safe request *url* with *params* """
     elogger.enter(f'>< requesting {url} with {str(params)[:100]}')
     is_request_successful = False
     result = ''
     try:
-        r = requests.get(url, params=params, timeout=3)
-        r.raise_for_status()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as resp:
+                result = await resp.json()
         is_request_successful = True
-        result = r.json()
         if 'error' in result:
             is_request_successful = False
-        elogger.exiter(f'[OK] {r.status_code}', result)
-    except requests.exceptions.HTTPError as e:
-        elogger.error(f'!! Http Error: {e}')
-    except requests.exceptions.ConnectionError as e:
-        elogger.error(f'!! Error Connecting: {e}')
-    except requests.exceptions.Timeout as e:
-        elogger.error(f'!! Timeout Error: {e}')
-    except requests.exceptions.RequestException as e:
-        elogger.error(f'!! Oops: {e}')
-
+        elogger.exiter(f'[OK] {resp.status}', result)
+    except aiohttp.client_exceptions.ClientConnectorError as err:
+        await elogger.error(f'!! aiohttp ClientConnectorError: {err}')
     return is_request_successful, result
 
 
-def request_wiki_info(namelink, locale):
+async def request_wiki_info(namelink, locale):
     """ request wikipedia for extracts intro (content before the first section)
     of page *namelink* on *locale* language """
     elogger.debug(f'----- request_wiki_info :: {namelink} @ {locale}')
     url = f"https://{locale}.wikipedia.org/w/api.php?action=query&format=json" \
           f"&prop=extracts&explaintext=1&exintro=1&titles={namelink}"
-    is_request_successful, r = please_request(url)
+    is_request_successful, r = await please_request(url)
     if is_request_successful:
         pages = r['query']['pages']
         info = pages[list(pages)[0]]['extract']
@@ -52,7 +46,7 @@ def request_wiki_info(namelink, locale):
         return info
 
 
-def get_notional_value(data_dict, locale, altale):
+async def get_notional_value(data_dict, locale, altale):
     """ Get *locale* key value from cached *data_dict*
     If locale value is empty, get value of default 'en'
     If default value is empty, get first non-empty """
@@ -68,11 +62,11 @@ def get_notional_value(data_dict, locale, altale):
                     if value:
                         break
                 if not value:
-                    elogger.datawarn(f'(dict) No data in {data_dict}')
+                    await elogger.datawarn(f'(dict) No data in {data_dict}')
     return key, value
 
 
-def get_universal(utypename, wdentities, locale, altale):
+async def get_universal(utypename, wdentities, locale, altale):
     """ most complicated function (with preloaded db becames pretty simple)
     it returns dictionary of entities with pair: {wdentity: (locale, value)}
     First gets *unidata*, db query with *wdentity* and *descr_cache* pairs,
@@ -85,7 +79,7 @@ def get_universal(utypename, wdentities, locale, altale):
     full_dict = dict([(i, {}) for i in wdentities])
     result_dict = dict([(i, (None, None)) for i in wdentities])
 
-    unidata = maindb.get_universal(utypename, wdentities)
+    unidata = await maindb.get_universal(utypename, wdentities)
 
     for wdentity, descr_cache in unidata:
         if descr_cache:
@@ -98,10 +92,10 @@ def get_universal(utypename, wdentities, locale, altale):
             # preloaded db needs no outer requests
             key = locale
             if not value:
-                elogger.datawarn(f'{wdentity} has no {key} in {utypename}')
-                key, value = get_notional_value(descr_dict, locale, altale)
+                await elogger.datawarn(f'{wdentity} has no {key} in {utypename}')
+                key, value = await get_notional_value(descr_dict, locale, altale)
                 if not value:
-                    elogger.datawarn(f'{wdentity} has no description at all !!')
+                    await elogger.datawarn(f'{wdentity} has no description at all !!')
                     value = '--nodata--'
 
             result_dict[wdentity] = (key, value)
@@ -110,17 +104,17 @@ def get_universal(utypename, wdentities, locale, altale):
     return result_dict
 
 
-def get_tags(wdentity, locale, altale):
+async def get_tags(wdentity, locale, altale):
     """ get tags from db as list of pairs (entity, emoji code),
     get from universe description labels for all entities,
     compile result *emores* as emoji chars and description """
     elogger.enter(f'----- get_tags {wdentity} @ {locale}')
-    check_tags([wdentity, ])
-    emojis_list = maindb.get_tags(wdentity)
+    await check_tags([wdentity, ])
+    emojis_list = await maindb.get_tags(wdentity)
     entity_list = [en[0] for en in emojis_list]
     emoji_list = [em[1] for em in emojis_list]
 
-    desc_dict = get_universal('labels', entity_list, locale, altale)
+    desc_dict = await get_universal('labels', entity_list, locale, altale)
     emores = ''
     for i in range(0, len(entity_list)):
         l_tmp, descr = desc_dict.get(entity_list[i])
@@ -154,11 +148,12 @@ def get_first_emoji(emoji_str):
     return emoji
 
 
-def get_info(wdid, locale, altale):
+async def get_info(wdid, locale, altale):
     """ get all stuff (tags, text and keyboard) for person info card """
-    key, namelink = get_universal('sitelinks', [wdid], locale, altale)[wdid]
-    info = request_wiki_info(namelink, key)
-    tags = get_tags(wdid, locale, altale)
+    data = await get_universal('sitelinks', [wdid], locale, altale)
+    key, namelink = data[wdid]
+    info = await request_wiki_info(namelink, key)
+    tags = await get_tags(wdid, locale, altale)
     text = f'<i>{tags}</i>\n\n{info}'
     if len(text) > 3896:
         text = text[:3896] + '...'
@@ -166,11 +161,12 @@ def get_info(wdid, locale, altale):
     return text, keyboard
 
 
-def get_shift_params(userid, direction):
+async def get_shift_params(userid, direction):
     """ get user session params for shift operation """
-    step = user.load_param(userid, 'keyboard').get('step')
-    kbtype = user.load_param(userid, 'keyboard').get('type')
-    s = user.load_param(userid, 'session')
+    kb = await user.load_param(userid, 'keyboard')
+    step = kb.get('step')
+    kbtype = kb.get('type')
+    s = await user.load_param(userid, 'session')
     bday = s.get('bday')
     offset = s.get('offset') + direction * int(step)
     is_rested = False
@@ -180,23 +176,24 @@ def get_shift_params(userid, direction):
     return bday, offset, is_rested, kbtype
 
 
-def get_day_plus(userid, bday, offset):
+async def get_day_plus(userid, bday, offset):
     """ get user session params to call *get_day_info* """
     elogger.enter(' ++++ MAIN')
-    locale = user.load_param(userid, 'locale').get('primary')
-    altale = user.load_param(userid, 'locale').get('altern', 'en')
-    keyboard = user.load_param(userid, 'keyboard')
+    lcl = await user.load_param(userid, 'locale')
+    locale = lcl.get('primary')
+    altale = lcl.get('altern', 'en')
+    keyboard = await user.load_param(userid, 'keyboard')
     count = keyboard.get('entries')
     buttons = keyboard.get('keys')
     kbtype = keyboard.get('type')
     debug = True if userid == admin_id else False
-    text, names, entities = get_day_info(bday, locale, altale, offset, count, debug)
+    text, names, entities = await get_day_info(bday, locale, altale, offset, count, debug)
     keyboard = get_keyboard(names, buttons, entities, kbtype, offset)
     elogger.exiter('[OK] MAIN', text)
     return text, keyboard, kbtype
 
 
-def get_day_info(bday, locale, altale, offset, count, debug=False):
+async def get_day_info(bday, locale, altale, offset, count, debug=False):
     """ get full *bday* info with *count* entries from starting *offset*
      every entry contains name from namelist, tag (emoji + description)
      and short description from desclist """
@@ -204,16 +201,16 @@ def get_day_info(bday, locale, altale, offset, count, debug=False):
     starttime = datetime.now()
     res_names = []
     res_text = f'{get_dayname(bday, locale)} {get_translation("were born", locale)}:\n\n'
-    data = maindb.get_day_intro(bday, locale, offset, count)
+    data = await maindb.get_day_intro(bday, locale, offset, count)
     entities = []
     for entity in data:
         if entity[0]:
             entities += entity
     if entities:
-        namelist = get_universal('sitelinks', entities, locale, altale)
-        desclist = get_universal('descriptions', entities, locale, altale)
-        check_tags(entities)
-        data = maindb.get_emojis(entities)
+        namelist = await get_universal('sitelinks', entities, locale, altale)
+        desclist = await get_universal('descriptions', entities, locale, altale)
+        await check_tags(entities)
+        data = await maindb.get_emojis(entities)
         tagdixt = {}
         for wde, emojis in data:
             emores = get_emoji_chars(emojis)
@@ -223,11 +220,11 @@ def get_day_info(bday, locale, altale, offset, count, debug=False):
             if wdentity:
                 l_tmp, name = namelist[wdentity]
                 l_tmp, desc = desclist[wdentity]
-                flag = get_person_flag(wdentity)
+                flag = await get_person_flag(wdentity)
                 tag = tagdixt.get(wdentity, chr(8265))
                 ftag = get_first_emoji(tag)
                 if tag == chr(8265):
-                    elogger.datawarn(f'{wdentity} ({name}) has no tags')
+                    await elogger.datawarn(f'{wdentity} ({name}) has no tags')
                 res_names.append(name)
                 res_text += f' {flag}{ftag} : : {name}\n{desc}\n\n'
 
@@ -298,20 +295,21 @@ def get_inline_keyboard(wdid, name, locale):
     return keyboard
 
 
-def get_photo_link(wdid):
+async def get_photo_link(wdid):
     """ query photo entry and generate full wikimedia link """
     elogger.enter(f'----- get_photo_link {wdid}')
-    photo = maindb.get_photo(wdid)
+    photo = await maindb.get_photo(wdid)
     result = get_wc_thumb(photo)
     elogger.exiter(f'[OK] get_photo_link', result)
     return result
 
 
-def get_acc_info(userid):
+async def get_acc_info(userid):
     """ get user settings localized info """
-    locale = user.load_param(userid, 'locale').get('primary')
-    altale = user.load_param(userid, 'locale').get('altern', 'en')
-    keyb = user.load_param(userid, 'keyboard')
+    lcl = await user.load_param(userid, 'locale')
+    locale = lcl.get('primary')
+    altale = lcl.get('altern', 'en')
+    keyb = await user.load_param(userid, 'keyboard')
     spaces = len(get_translation('number of entries', locale)) + 1
     res_str = f"{get_translation('config', locale)}:\n"
     res_str += f"<code>{(get_translation('language', locale) + ':').ljust(spaces)}  " \
@@ -326,16 +324,19 @@ def get_acc_info(userid):
     return res_str
 
 
-def get_all_fav(userid):
+async def get_all_fav(userid):
     """ get all entries of favorites """
     elogger.enter(f'----- get_all_fav {userid}')
-    locale = user.load_param(userid, 'locale').get('primary')
-    altale = user.load_param(userid, 'locale').get('altern', 'en')
-    kbtype = user.load_param(userid, 'keyboard').get('type')
+    lcl = await user.load_param(userid, 'locale')
+    locale = lcl.get('primary')
+    altale = lcl.get('altern', 'en')
+    kb = await user.load_param(userid, 'keyboard')
+    kbtype = kb.get('type')
     result = ''
-    wdentities = sum(maindb.get_allfav(userid), ())
+    data = await maindb.get_allfav(userid)
+    wdentities = [d[0] for d in data]
     if wdentities:
-        data = get_universal('sitelinks', wdentities, locale, altale)
+        data = await get_universal('sitelinks', wdentities, locale, altale)
         result = '' if kbtype == 'regular' else get_translation('my favorites', locale) + ':\n'
         for wdid in wdentities:
             result += f'• {data[wdid][1]}\n'
@@ -354,9 +355,9 @@ def get_flag(country, flagonly=False):
     return f'{emores} {country}'
 
 
-def get_person_flag(wdentity):
+async def get_person_flag(wdentity):
     elogger.enter(f'^^ get_person_flag of {wdentity}')
-    flags = maindb.get_flags(wdentity)
+    flags = await maindb.get_flags(wdentity)
     if not flags:
         return get_emoji_chars('U+1F5FA')
     else:
@@ -381,12 +382,11 @@ def get_person_flag(wdentity):
         return get_emoji_chars(res_emoji_flag)
 
 
-def check_tags(entities):
+async def check_tags(entities):
     """ It has been added in final stage and breaks some logic
     Returns nothing, but requests and stores absent tags """
-    data = maindb.get_entities(entities)
-    data_list = sum(data, ())
-
+    data = await maindb.get_entities(entities)
+    data_list = [d[0] for d in data]
     result_values = []
     entities_to_request = []
     for entity in entities:
@@ -398,16 +398,16 @@ def check_tags(entities):
         for entity in entities_to_request:
             url = f'https://www.wikidata.org/w/api.php?' \
                   f'action=wbgetclaims&format=json&entity={entity}&property=P106'
-            is_good, r = please_request(url)
+            is_good, r = await please_request(url)
             if is_good and r['claims']:
                 for entry in r['claims']['P106']:
                     wde = entry['mainsnak']['datavalue']['value']['id']
                     result_values.append((entity, wde))
     if result_values:
-        maindb.set_entities(result_values)
+        await maindb.set_entities(result_values)
 
 
-def find_properties(wdid, locale, altale):
+async def find_properties(wdid, locale, altale):
     """ future feature """
     ignorelist = ['P19', 'P20', 'P21', 'P22', 'P25', 'P26', 'P27', 'P31', 'P40', 'P53', 'P91',
                   'P102', 'P103', 'P106', 'P119', 'P140', 'P172', 'P184', 'P185', 'P358', 'P451',  # 'P361',
@@ -418,13 +418,14 @@ def find_properties(wdid, locale, altale):
 
     url = f'https://www.wikidata.org/w/api.php?' \
           f'action=wbgetclaims&format=json&entity={wdid}'
-    is_good, r = please_request(url)
+    is_good, r = await please_request(url)
 
     if is_good:
+        session = aiohttp.ClientSession()
         claims = r['claims']
         props = claims.keys()
         result_dict = {}  # notable properties
-        reqs = []  # list of grequests
+        reqs = []  # list of aiohttp requests
         propses = []  # ordered list of props
         bigdict = {}  # list of entities passed to grequests
         for prop in props:
@@ -432,7 +433,7 @@ def find_properties(wdid, locale, altale):
                 entities = [prop, ]
                 for entry in claims[prop]:
                     if 'datavalue' not in entry['mainsnak']:
-                        elogger.datawarn(f"{prop} no value in {entry['mainsnak']}")
+                        await elogger.datawarn(f"{prop} no value in {entry['mainsnak']}")
                         continue
                     entry_value = entry['mainsnak']['datavalue']['value']
                     if type(entry_value) == dict:
@@ -443,19 +444,20 @@ def find_properties(wdid, locale, altale):
                 if len(entities) > 1:
                     url = f'https://www.wikidata.org/w/api.php?props=labels&languages=en|{locale}|{altale}' \
                           f'&ids={"|".join(entities[:49])}&action=wbgetentities&format=json'
-                    reqs.append(grequests.get(url))
+                    reqs.append(asyncio.ensure_future(session.get(url)))
                     propses.append(prop)
                     bigdict[prop] = entities[:49]
 
         if reqs:
+            requests = await asyncio.gather(*reqs)
             propindx = -1
-            for request in grequests.map(reqs):
-                if request.status_code == 200:
-                    r = request.json()
+            for request in requests:
+                if request.status == 200:
+                    r = await request.json(content_type=None)
                     propindx += 1
                     prop = propses[propindx]
                     if 'error' in r:
-                        elogger.datawarn(f"{prop} prop of {wdid} :: {r['error']['code']} : {r['error']['info']}")
+                        await elogger.datawarn(f"{prop} prop of {wdid} :: {r['error']['code']} : {r['error']['info']}")
                     else:
                         entities = bigdict[prop]
                         values = []
@@ -466,10 +468,11 @@ def find_properties(wdid, locale, altale):
                                 if loc in entry:
                                     value = entry[loc]['value']
                                     loc_dict[loc] = value
-                            tmp, value = get_notional_value(loc_dict, locale, altale)
+                            tmp, value = await get_notional_value(loc_dict, locale, altale)
                             if value not in values:
                                 values.append(value)
 
                         if len(values):
                             result_dict[prop] = values
+        await session.close()
         return result_dict

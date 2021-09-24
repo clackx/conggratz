@@ -1,38 +1,48 @@
+import asyncio
 import datetime
 from config import DBUSER, DBNAME
-import psycopg2
+import asyncpg
 
 
 class Evdb:
     def __init__(self):
         try:
-            self.connection = psycopg2.connect(user=DBUSER, database=DBNAME,
-                                               host="127.0.0.1", port="5432")
-            self.cursor = self.connection.cursor()
+            self.loop = asyncio.get_event_loop()
+
+            self.loop = asyncio.get_event_loop()
+            self.pool = self.loop.run_until_complete(
+                asyncpg.create_pool(user=DBUSER, database=DBNAME,
+                                    host="127.0.0.1", port="5432"))
             print('[ evdb connection ok ]')
-        except (Exception, psycopg2.Error) as error:
-            print('connection failed with', error)
+        except asyncpg.exceptions.PostgresError as error:
+            print('!! echoer postgres error ::', error)
 
-    def try_commit(self, query, values):
-        try:
-            self.cursor.execute(query, values)
-            self.connection.commit()
-        except (Exception, psycopg2.Error) as error:
-            print('insertion failed with', error)
+    async def connect(self):
+        """init asyncpg pool for noserver using"""
+        dsn = f"postgres://{DBUSER}@127.0.0.1:5432/{DBNAME}"
+        self.pool = await asyncpg.create_pool(dsn=dsn)
+        print('[ evdb connection ok ]')
 
-    def add_to_events(self, tstamp, evt, usr, txt):
-        query = f"INSERT INTO events VALUES (to_timestamp(%s), %s, %s, %s)"
+    async def try_commit(self, query, values):
+        async with self.pool.acquire() as con:
+            try:
+                await con.execute(query, *values)
+            except asyncpg.exceptions.PostgresError as error:
+                print('!! echoer postgres error ::', error)
+
+    async def add_to_events(self, tstamp, evt, usr, txt):
+        query = f"INSERT INTO events VALUES (to_timestamp($1), $2, $3, $4)"
         values = (tstamp, evt, usr, txt)
-        self.try_commit(query, values)
+        await self.try_commit(query, values)
 
-    def add_datawarn(self, entity, message):
-        query = f"INSERT INTO datawarn VALUES (%s, %s) ON CONFLICT DO NOTHING"
+    async def add_datawarn(self, entity, message):
+        query = f"INSERT INTO datawarn VALUES ($1, $2) ON CONFLICT DO NOTHING"
         values = (entity, message)
-        self.try_commit(query, values)
+        await self.try_commit(query, values)
 
 
-def echo(message):
-    tstamp = datetime.datetime.now().strftime('%s.%f')
+async def echo(message):
+    tstamp = float(datetime.datetime.now().strftime('%s.%f'))
     if message[0] == 'I':
         usr = message.split()[2]
         evt = message.split()[3]
@@ -48,14 +58,14 @@ def echo(message):
     else:
         (evt, usr, txt) = ('', '', '')
 
-    evdb.add_to_events(tstamp, evt, usr, txt)
+    await evdb.add_to_events(tstamp, evt, usr, txt)
 
 
-def dwarn(message):
+async def dwarn(message):
     strips = message.split()
     entity = strips[0]
-    message = message[len(entity)+1:]
-    evdb.add_datawarn(entity, message)
+    message = message[len(entity) + 1:]
+    await evdb.add_datawarn(entity, message)
 
 
 evdb = Evdb()
