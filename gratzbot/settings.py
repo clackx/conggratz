@@ -1,4 +1,4 @@
-from telebot import types
+from aiogram import types
 from getter import get_acc_info, get_flag
 from messages import get_translation
 from sender import send_message, smartsend, send_gratz_brief
@@ -21,13 +21,11 @@ def get_button(name, locale, kbtype='regular'):
         return button(text=text, callback_data=f'sets_{name.replace(" ", "_")}')
 
 
-def settings(chat_id, rtype, message=''):
-    locale = user.load_param(chat_id, 'locale').get('primary')
-    kbtype = user.load_param(chat_id, 'keyboard').get('type')
-    s = user.load_param(chat_id, 'session')
-    prev_message_id = s.get('message_id')
-    prev_sets_mess_id = s.get('sets_mess_id')
-
+async def settings(userid, rtype, message=''):
+    lcl = await user.load_param(userid, 'locale')
+    locale = lcl.get('primary')
+    kb = await user.load_param(userid, 'keyboard')
+    kbtype = kb.get('type')
     btn_list = 'menu'
     text = '...'
 
@@ -42,83 +40,87 @@ def settings(chat_id, rtype, message=''):
 
         if message.lower() in ('inline', 'regular'):
             kbtype = message.lower()
-            user.update_param(chat_id, 'keyboard', {'type': kbtype})
-            send_message(chat_id, transl_list[0] + kbtype)
+            await user.update_param(userid, 'keyboard', {'type': kbtype})
+            await send_message(userid, transl_list[0] + kbtype)
             state = 1
         elif message == '':
             state = 0
         else:
-            state = user.load_param(chat_id, 'session').get('state', 0)
+            s = await user.load_param(userid, 'session')
+            state = s.get('state', 0)
         choice = message
 
         if state == 0:
-            user.update_param(chat_id, 'session', {'state': state + 1})
+            await user.update_param(userid, 'session', {'state': state + 1})
             text = transl_list[state]
             btn_list = (btn_list_list[state],)
         if state == 1:
-            user.update_param(chat_id, 'session', {'state': state + 1})
+            await user.update_param(userid, 'session', {'state': state + 1})
             text = transl_list[state]
             btn_list = (btn_list_list[state],)
         elif state == 2:
             if choice not in btn_list_list[state - 1]:
                 choice = '6'
             if kbtype != 'inline':
-                send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
-            user.update_param(chat_id, 'session', {'state': state + 1})
-            user.update_param(chat_id, 'keyboard', {'keys': int(choice)})
+                await send_message(userid, f'{transl_list[state - 1]}: {set_str} {choice}')
+            await user.update_param(userid, 'session', {'state': state + 1})
+            await user.update_param(userid, 'keyboard', {'keys': int(choice)})
             text = transl_list[2]
             btn_list = (btn_list_list[2],)
         elif state == 3:
             if choice not in btn_list_list[state - 1]:
                 choice = '6'
-            keynum = user.load_param(chat_id, 'keyboard').get('keys')
+            kb = await user.load_param(userid, 'keyboard')
+            keynum = kb.get('keys')
             if int(choice) < int(keynum):
                 choice = keynum
             if kbtype != 'inline':
-                send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
-            user.update_param(chat_id, 'session', {'state': state + 1})
-            user.update_param(chat_id, 'keyboard', {'entries': int(choice)})
+                await send_message(userid, f'{transl_list[state - 1]}: {set_str} {choice}')
+            await user.update_param(userid, 'session', {'state': state + 1})
+            await user.update_param(userid, 'keyboard', {'entries': int(choice)})
             text = transl_list[state]
             btn_list = (btn_list_list[state],)
         elif state == 4:
             if choice not in btn_list_list[state - 1]:
                 choice = '4'
-            keynum = user.load_param(chat_id, 'keyboard').get('keys', 0)
+            kb = await user.load_param(userid, 'keyboard')
+            keynum = kb.get('keys', 0)
             if int(choice) > int(keynum):
                 choice = keynum
             if kbtype != 'inline':
-                send_message(chat_id, f'{transl_list[state - 1]}: {set_str} {choice}')
-            user.update_param(chat_id, 'session', {'state': 0})
-            user.update_param(chat_id, 'keyboard', {'step': int(choice)})
-            text = get_acc_info(chat_id)
+                await send_message(userid, f'{transl_list[state - 1]}: {set_str} {choice}')
+            await user.update_param(userid, 'session', {'state': 0})
+            await user.update_param(userid, 'keyboard', {'step': int(choice)})
+            text = await get_acc_info(userid)
             btn_list = btn_list_list[state]
 
     elif rtype == 2:
-        state = user.load_param(chat_id, 'session').get('state', 0)
+        s = await user.load_param(userid, 'session')
+        state = s.get('state', 0)
         btn_list = ((get_flag('RU'), get_flag('EN'), get_flag('ES'), get_flag('ZH')),
                     (get_flag('BE'), get_flag('UK'), get_flag('DE'), get_flag('KO')),
                     (get_flag('KK'), get_flag('IT'), get_flag('FR'), get_flag('JA')))
         if message == '':
             text = get_translation('locale', locale).capitalize()
-            user.update_param(chat_id, 'session', {'state': 0})
+            await user.update_param(userid, 'session', {'state': 0})
         else:
             if message[0] != '*':
                 choise = message.lower()
-                user.update_param(chat_id, 'locale', {'primary': choise})
-                send_message(chat_id, get_flag(choise, flagonly=True))
+                await user.update_param(userid, 'locale', {'primary': choise})
+                await send_message(userid, get_flag(choise, flagonly=True))
                 return
             else:
                 choise = message[1:].lower()
                 if state == 0:
-                    user.update_param(chat_id, 'locale', {'primary': choise})
-                    user.update_param(chat_id, 'session', {'state': 1})
+                    await user.update_param(userid, 'locale', {'primary': choise})
+                    await user.update_param(userid, 'session', {'state': 1})
                     text = get_translation('altale', locale).capitalize()
                 else:
-                    user.update_param(chat_id, 'locale', {'altern': choise})
-                    user.update_param(chat_id, 'session', {'state': 0})
-                    text = get_acc_info(chat_id)
+                    await user.update_param(userid, 'locale', {'altern': choise})
+                    await user.update_param(userid, 'session', {'state': 0})
+                    text = await get_acc_info(userid)
                     btn_list = 'menu'
-            send_message(chat_id, get_flag(choise, flagonly=True))
+            await send_message(userid, get_flag(choise, flagonly=True))
 
     elif rtype == 3:
         btn_list = 'menu'
@@ -127,10 +129,10 @@ def settings(chat_id, rtype, message=''):
             btn_list = (('ON', 'OFF'),)
         elif message == 1:
             text = get_translation('notifications', locale) + ': ' + get_translation('ON', locale)
-            user.set_notifications(chat_id, 1)
+            await user.set_notifications(userid, 1)
         else:
             text = get_translation('notifications', locale) + ': ' + get_translation('OFF', locale)
-            user.set_notifications(chat_id, 0)
+            await user.set_notifications(userid, 0)
 
     elif rtype == 4 or rtype == 42:
         text = ': : ' + get_translation('main menu', locale) + ' : :'
@@ -138,10 +140,10 @@ def settings(chat_id, rtype, message=''):
                     ('yesterday', 'another day'),
                     ('config', 'help'))
     else:
-        text = get_acc_info(chat_id)
+        text = await get_acc_info(userid)
 
     if rtype == 42:
-        user.update_param(chat_id, 'session', {'state': 4})
+        await user.update_param(userid, 'session', {'state': 4})
         text = get_translation('grateful', locale)
         btn_list = ()
 
@@ -151,17 +153,18 @@ def settings(chat_id, rtype, message=''):
         elif message == 8:
             helpstate = 9
         else:
-            helpstate = user.load_param(chat_id, 'session').get('state', 0)
+            s = await user.load_param(userid, 'session')
+            helpstate = s.get('state', 0)
         text = get_translation(f'tour{helpstate}', locale).replace('\n', '\n\n\t')
         text += f' <a href="https://conggratz.ru/stati/tour{helpstate}.png">&#8205;</a>'
         btn_list = (('(skip)', 'next'),)
         if helpstate > 8:
             text = get_translation('endhelp', locale)
-            send_message(chat_id, text)
-            user.update_param(chat_id, 'session', {'state': 0})
-            send_gratz_brief(chat_id, birthday_from_offset(0))
+            await send_message(userid, text)
+            await user.update_param(userid, 'session', {'state': 0})
+            await send_gratz_brief(userid, birthday_from_offset(0))
             return
-        user.update_param(chat_id, 'session', {'state': helpstate + 1})
+        await user.update_param(userid, 'session', {'state': helpstate + 1})
 
     if btn_list == 'menu':
         btn_list = (('language', 'keyboard'),
@@ -179,7 +182,7 @@ def settings(chat_id, rtype, message=''):
             markup.add(*res)
 
         noedit = True if message == 'noedit' else False
-        smartsend(chat_id, text, markup, kbtype, noedit)
+        await smartsend(userid, text, markup, kbtype, noedit)
 
     else:
-        send_message(chat_id, text)
+        await send_message(userid, text)

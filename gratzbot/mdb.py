@@ -1,11 +1,8 @@
-import sqlite3
-import threading
+import asyncio
+import asyncpg
+import aiosqlite
 from config import DBUSER, DBNAME
 import elogger
-import psycopg2
-from psycopg2 import Error
-
-lock = threading.Lock()
 
 
 def to_tuple_string(elements):
@@ -22,53 +19,38 @@ class Mdb:
     (ALL, ONE) = (8, 0)
 
     def __init__(self):
-        try:
-            self.connection = psycopg2.connect(user=DBUSER, database=DBNAME,
-                                               host="127.0.0.1", port="5432")
-            self.cursor = self.connection.cursor()
-        except (Exception, Error) as error:
-            elogger.error(f'!! postgres error :: {str(error)}')
-        finally:
-            if self.connection:
-                elogger.preinfo('[] PostgreSQL 8:==э connected')
+        self.loop = asyncio.get_event_loop()
+        self.pool = self.loop.run_until_complete(
+            asyncpg.create_pool(
+                user=DBUSER, database=DBNAME,
+                host="127.0.0.1", port="5432"))
+        elogger.debug('[] PostgreSQL 8:==э connected')
 
-    def try_fetch(self, query, qtype):
-        with lock:
-            with self.connection:
-                try:
-                    if qtype == Mdb.ALL:
-                        self.cursor.execute(query)
-                        data = self.cursor.fetchall()
-                    elif qtype == Mdb.ONE:
-                        self.cursor.execute(query)
-                        data = self.cursor.fetchone()
-                        if data:
-                            data = data[0]
-                except sqlite3.OperationalError as e:
-                    elogger.error(f'!! sqlite3 OperationalError :: {str(e)}')
-                    return
-                except (Exception, Error) as error:
-                    elogger.error(f'!! postgres error :: {str(error)}')
-                    return
-                elogger.exiter(f'[OK] {len(data) if data else 0} elms {len(str(data))} chrs', data)
+    async def connect(self):
+        """init asyncpg pool for noserver using"""
+        dsn = f"postgres://{DBUSER}@127.0.0.1:5432/{DBNAME}"
+        self.pool = await asyncpg.create_pool(dsn=dsn)
+        elogger.debug('[] PostgreSQL 8:==э connected')
+
+    async def try_fetch(self, query, qtype):
+        async with self.pool.acquire() as con:
+            try:
+                if qtype == Mdb.ALL:
+                    data = await con.fetch(query)
+                elif qtype == Mdb.ONE:
+                    data = await con.fetchval(query)
+            except asyncpg.exceptions.PostgresError as error:
+                await elogger.error(f'!! postgres error :: {error}')
+            elogger.exiter(f'[OK] {len(data) if data else 0} elms {len(str(data))} chrs', data)
             return data
 
-    def try_commit(self, query):
-        with lock:
-            with self.connection:
-                try:
-                    self.cursor.execute(query)
-                    self.connection.commit()
-                    return True
-                except sqlite3.OperationalError as e:
-                    elogger.error(f'!! sqlite3 OperationalError :: {str(e)}')
-                    return False
-                except sqlite3.IntegrityError as e:
-                    elogger.error(f'!! sqlite3 IntegrityError :: {str(e)}')
-                    return False
-                except (Exception, Error) as error:
-                    elogger.error(f'!! postgres error :: {str(error)}')
-                    return False
+    async def try_commit(self, query):
+        async with self.pool.acquire() as con:
+            try:
+                await con.execute(query)
+                return True
+            except asyncpg.exceptions.PostgresError as error:
+                await elogger.error(f'!! postgres error :: {error}')
 
     def get_day_intro(self, bdate, locale, offset, count):
         elogger.enter(f'^^ get_day_intro {bdate} in ({locale}) locale with offset {offset}')
@@ -84,9 +66,9 @@ class Mdb:
         elogger.enter(f'^^ get: {utypename} {wdentities}')
         tuplestr = to_tuple_string(wdentities)
         query = {
-            'labels':       f"SELECT occu_entity, descr_cache FROM occupations WHERE occu_entity IN {tuplestr}",
+            'labels': f"SELECT occu_entity, descr_cache FROM occupations WHERE occu_entity IN {tuplestr}",
             'descriptions': f"SELECT wdentity, descrs FROM people WHERE wdentity IN {tuplestr}",
-            'sitelinks':    f"SELECT wdentity, links FROM people WHERE wdentity IN {tuplestr}"
+            'sitelinks': f"SELECT wdentity, links FROM people WHERE wdentity IN {tuplestr}"
         }.get(utypename)
         return self.try_fetch(query, Mdb.ALL)
 
@@ -126,7 +108,8 @@ class Mdb:
 
     def set_entities(self, entities):
         elogger.debug(f'set_entitites {entities}')
-        query = f"INSERT INTO tags (people_entity, occupation_entity) VALUES {str(entities)[1:-1]}"
+        query = "INSERT INTO tags (people_entity, occupation_entity)" \
+                f" VALUES {str(entities)[1:-1]} ON CONFLICT DO NOTHING"
         return self.try_commit(query)
 
     def get_user(self, userid):
@@ -147,7 +130,7 @@ class Mdb:
     def ident_user(self, userid, regname, regtime, settings):
         elogger.debug(f'ident_user {userid}')
         query = f"UPDATE users SET regname='{regname}', regtime='{regtime}', " \
-                  f"identity='{settings}' WHERE userid={userid}"
+                f"identity='{settings}' WHERE userid={userid}"
         return self.try_commit(query)
 
     def get_notication_requiring(self):
@@ -178,37 +161,39 @@ class Mdb:
 
 class Memdb:
     def __init__(self):
-        self.connection = sqlite3.connect(":memory:", check_same_thread=False)
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(f"CREATE TABLE memble (userid TEXT UNIQUE, settings TEXT)")
+        self.loop = asyncio.get_event_loop()
+        self.connection = self.loop.run_until_complete(
+            aiosqlite.connect(":memory:", check_same_thread=False))
 
-    def settings(self, userid):
-        data = self.cursor.execute(f"SELECT settings FROM memble WHERE userid='{userid}'").fetchone()
+    async def create(self):
+        await self.connection.execute(f"CREATE TABLE memble (userid TEXT UNIQUE, settings TEXT)")
+        await self.connection.commit()
+
+    async def settings(self, userid):
+        data = ''
+        try:
+            cur = await self.connection.execute(f"SELECT settings FROM memble WHERE userid={userid}")
+            data = await cur.fetchone()
+        except aiosqlite.OperationalError:
+            await self.create()
+
         if data:
             return data[0]
         else:
-            data = maindb.get_user(userid)
-            self._load_settings(userid, data)
+            data = await maindb.get_user(userid)
+            await self._load_settings(userid, data)
             return data
 
-    def _load_settings(self, userid, data):
-        self.cursor.execute(f"INSERT INTO memble VALUES('{userid}', '{data}')")
-        self.connection.commit()
+    async def _load_settings(self, userid, data):
+        await self.connection.execute(f"INSERT INTO memble VALUES({userid}, '{data}')")
+        await self.connection.commit()
 
-    def update_settings(self, userid, data):
-        self.cursor.execute(f"UPDATE memble SET settings='{data}' WHERE userid='{userid}'")
-        self.connection.commit()
+    async def update_settings(self, userid, data):
+        await self.connection.execute(f"UPDATE memble SET settings='{data}' WHERE userid={userid}")
+        await self.connection.commit()
 
-    def close(self):
-        self.connection.close()
-
-    def what(self):
-        data = self.cursor.execute(f"SELECT * from memble").fetchall()
-        return data
-
-    def reload(self):
-        self.cursor.execute(f"DELETE from memble")
-        self.connection.commit()
+    async def close(self):
+        await self.connection.close()
 
 
 maindb = Mdb()

@@ -1,5 +1,5 @@
 import settings
-from misc import bot, birthday_from_offset
+from misc import dp, birthday_from_offset
 import sender
 from messages import re_join
 import elogger
@@ -8,252 +8,252 @@ import user
 """ command section """
 
 
-@bot.message_handler(commands=["start"])
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV command /start')
-    user.start(message.from_user)
-    sender.helps(message.chat.id)
+@dp.message_handler(commands=["start"])
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV command /start')
+    await user.start(message.from_user)
+    await sender.helps(message.chat.id)
 
 
-@bot.message_handler(commands=["menu"])
-@bot.message_handler(regexp=(re_join('main menu', ['menu', 'меню', '<<< Menu'])))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV command /menu')
-    settings.settings(message.chat.id, 4, 'noedit')
+@dp.message_handler(commands=["menu"])
+@dp.message_handler(regexp=(re_join('main menu', ['menu', 'меню', '<<< Menu'])))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV command /menu')
+    await settings.settings(message.chat.id, 4, 'noedit')
 
 
-@bot.message_handler(commands=["settings"])
-@bot.message_handler(commands=["sets"])
-@bot.message_handler(regexp=re_join('config'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV command /sets')
-    settings.settings(message.chat.id, 0, 'noedit')
+@dp.message_handler(commands=["settings"])
+@dp.message_handler(commands=["sets"])
+@dp.message_handler(regexp=re_join('config'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV command /sets')
+    await settings.settings(message.chat.id, 0, 'noedit')
 
 
-@bot.message_handler(commands=["help"])
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV command /help')
-    sender.helps(message.chat.id)
+@dp.message_handler(commands=["help"])
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV command /help')
+    await sender.helps(message.chat.id)
 
 
-@bot.message_handler(commands=["day"])
-@bot.message_handler(regexp=re_join('today', ['brief', 'day']))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF TODAY')
-    sender.send_gratz_brief(message.chat.id, birthday_from_offset(0), noedit=True)
+@dp.message_handler(commands=["day"])
+@dp.message_handler(regexp=re_join('today', ['brief', 'day']))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} INF TODAY')
+    await sender.send_gratz_brief(message.chat.id, birthday_from_offset(0), noedit=True)
 
 
 """ day section """
 
 
-@bot.message_handler(regexp=re_join('tomorrow'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF TOMORROW')
-    sender.send_gratz_brief(message.chat.id, birthday_from_offset(1))
+@dp.message_handler(regexp=re_join('tomorrow'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} INF TOMORROW')
+    await sender.send_gratz_brief(message.chat.id, birthday_from_offset(1))
 
 
-@bot.message_handler(regexp=re_join('yesterday'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF YESTERDAY')
-    sender.send_gratz_brief(message.chat.id, birthday_from_offset(-1))
+@dp.message_handler(regexp=re_join('yesterday'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} INF YESTERDAY')
+    await sender.send_gratz_brief(message.chat.id, birthday_from_offset(-1))
 
 
-@bot.message_handler(regexp=re_join('another day'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF OTHERDAY')
-    sender.send_anotherdaytext(message.chat.id)
+@dp.message_handler(regexp=re_join('another day'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} INF OTHERDAY')
+    await sender.send_anotherdaytext(message.chat.id)
 
 
-@bot.message_handler(regexp='^\d{1,2}[\.|-]\d{1,2}$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF MONTH.DAY {message.text}')
-    sender.parseday(message.chat.id, message.text)
+@dp.message_handler(regexp='^\d{1,2}[\.|-]\d{1,2}$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} INF MONTH.DAY {message.text}')
+    await sender.parseday(message.chat.id, message.text)
 
 
 """ settings section """
 
 
-@bot.message_handler(regexp=re_join('keyboard'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT KEYBOARD')
-    settings.settings(message.chat.id, 1)
+@dp.message_handler(regexp=re_join('keyboard'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT KEYBOARD')
+    await settings.settings(message.chat.id, 1)
 
 
-@bot.message_handler(regexp='^\d{1,2}$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT NUMERIC {message.text}')
-    sender.delete_message(message.chat.id, message.id)
-    settings.settings(message.chat.id, 1, message.text)
+@dp.message_handler(regexp='^\d{1,2}$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT NUMERIC {message.text}')
+    await sender.delete_message(message.chat.id, message.message_id)
+    await settings.settings(message.chat.id, 1, message.text)
 
 
-@bot.message_handler(regexp='^(inline|regular)$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT NUMERIC {message.text}')
-    settings.settings(message.chat.id, 1, message.text)
+@dp.message_handler(regexp='^(inline|regular)$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT NUMERIC {message.text}')
+    await settings.settings(message.chat.id, 1, message.text)
 
 
-@bot.message_handler(commands=['lang'])
-@bot.message_handler(regexp=re_join('language'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT LOCALE')
-    settings.settings(message.chat.id, 2)
+@dp.message_handler(commands=['lang'])
+@dp.message_handler(regexp=re_join('language'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT LOCALE')
+    await settings.settings(message.chat.id, 2)
 
 
-@bot.message_handler(regexp='^.{2} (RU|BE|UK|KK|EN|DE|ES|FR|IT|ZH|KO|JA)$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT LOCALE {message.text[3:]}')
-    settings.settings(message.chat.id, 2, '*' + message.text[3:])
+@dp.message_handler(regexp='^.{2} (RU|BE|UK|KK|EN|DE|ES|FR|IT|ZH|KO|JA)$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT LOCALE {message.text[3:]}')
+    await settings.settings(message.chat.id, 2, '*' + message.text[3:])
 
 
-@bot.message_handler(regexp='^(RU|BE|UK|KK|EN|DE|ES|FR|IT|ZH|KO|JA)$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT LOCALE {message.text}')
-    settings.settings(message.chat.id, 2, message.text)
+@dp.message_handler(regexp='^(RU|BE|UK|KK|EN|DE|ES|FR|IT|ZH|KO|JA)$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT LOCALE {message.text}')
+    await settings.settings(message.chat.id, 2, message.text)
 
 
-@bot.message_handler(regexp=re_join('notifications'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC')
-    settings.settings(message.chat.id, 3)
+@dp.message_handler(regexp=re_join('notifications'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC')
+    await settings.settings(message.chat.id, 3)
 
 
-@bot.message_handler(regexp=re_join('ON'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC ON')
-    settings.settings(message.chat.id, 3, 1)
+@dp.message_handler(regexp=re_join('ON'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC ON')
+    await settings.settings(message.chat.id, 3, 1)
 
 
-@bot.message_handler(regexp=re_join('OFF'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC OFF')
-    settings.settings(message.chat.id, 3, 0)
+@dp.message_handler(regexp=re_join('OFF'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT NOTIFIC OFF')
+    await settings.settings(message.chat.id, 3, 0)
 
 
 """ other actions """
 
 
-@bot.message_handler(regexp=re_join('my favorites'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV MYLIKEES')
-    sender.send_likees(message.chat.id)
+@dp.message_handler(regexp=re_join('my favorites'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV MYLIKEES')
+    await sender.send_likees(message.chat.id)
 
 
-@bot.message_handler(regexp=re_join('review'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV REVIEW')
-    settings.settings(message.chat.id, 42, 0)
+@dp.message_handler(regexp=re_join('review'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV REVIEW')
+    await settings.settings(message.chat.id, 42, 0)
 
 
-@bot.message_handler(regexp='^fw|fw>>$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV forward FW>>')
-    sender.delete_message(message.chat.id, message.id)
-    sender.send_gratz_shift(message.chat.id, +1)
+@dp.message_handler(regexp='^fw|fw>>$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV forward FW>>')
+    await sender.delete_message(message.chat.id, message.message_id)
+    await sender.send_gratz_shift(message.chat.id, +1)
 
 
-@bot.message_handler(commands=["fw"])
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV command /fw')
-    sender.send_gratz_shift(message.chat.id, +1, noedit=True)
+@dp.message_handler(commands=["fw"])
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV command /fw')
+    await sender.send_gratz_shift(message.chat.id, +1, noedit=True)
 
 
-@bot.message_handler(regexp='^rw|bw|<<rw$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} SRV backward <<RW')
-    sender.delete_message(message.chat.id, message.id)
-    sender.send_gratz_shift(message.chat.id, -1)
+@dp.message_handler(regexp='^rw|bw|<<rw$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} SRV backward <<RW')
+    await sender.delete_message(message.chat.id, message.message_id)
+    await sender.send_gratz_shift(message.chat.id, -1)
 
 
-@bot.message_handler(regexp=re_join('help'))
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF HELP')
-    settings.settings(message.chat.id, 911, 0)
+@dp.message_handler(regexp=re_join('help'))
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} INF HELP')
+    await settings.settings(message.chat.id, 911, 0)
 
 
-@bot.message_handler(regexp='^next$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF TOUR')
-    sender.delete_message(message.chat.id, message.id)
-    settings.settings(message.chat.id, 911)
+@dp.message_handler(regexp='^next$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} INF TOUR')
+    await sender.delete_message(message.chat.id, message.message_id)
+    await settings.settings(message.chat.id, 911)
 
 
-@bot.message_handler(regexp='^\(skip\)|skip$')
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} INF SKIP')
-    sender.delete_message(message.chat.id, message.id)
-    settings.settings(message.chat.id, 911, 8)
+@dp.message_handler(regexp='^\(skip\)|skip$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} INF SKIP')
+    await sender.delete_message(message.chat.id, message.message_id)
+    await settings.settings(message.chat.id, 911, 8)
 
 
 # all text messages handler
-@bot.message_handler(func=lambda message: True, content_types=['text'])
-def docall(message):
-    elogger.preinfo(f'<< {message.chat.id} MSG MESSAGE {message.text}')
+@dp.message_handler(content_types=['text'])
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} MSG MESSAGE {message.text}')
     if message.text == chr(12951):
-        sender.send_message(message.chat.id, chr(129395))
+        await sender.send_message(message.chat.id, chr(129395))
     else:
-        sender.incoming(message.chat.id, message.text)
+        await sender.incoming(message.chat.id, message.text)
 
 
 # inline keyboard buttons handler
-@bot.callback_query_handler(func=lambda call: True)
-def docall(query):
+@dp.callback_query_handler()
+async def docall(query):
     button = query.data[:4]
     clarify = query.data[5:]
     if button == 'like':
-        elogger.preinfo(f'<< {query.message.chat.id} SRV LIKE {clarify}')
-        sender.save_liked(query.message.chat.id, clarify, query.id)
+        await elogger.preinfo(f'<< {query.message.chat.id} SRV LIKE {clarify}')
+        await sender.save_liked(query.message.chat.id, clarify, query.id)
     if button == 'more':
-        elogger.preinfo(f'<< {query.message.chat.id} SRV MORE {clarify}')
-        sender.send_more(query.message.chat.id, clarify, query.id)
+        await elogger.preinfo(f'<< {query.message.chat.id} SRV MORE {clarify}')
+        await sender.send_more(query.message.chat.id, clarify, query.id)
     if button == 'info':
-        elogger.preinfo(f'<< {query.message.chat.id} INF BUTTON {clarify}')
-        sender.answer_callback_query(query.id)
+        await elogger.preinfo(f'<< {query.message.chat.id} INF BUTTON {clarify}')
+        await sender.answer_callback_query(query.id)
         if clarify == 'rw':
-            sender.send_gratz_shift(query.message.chat.id, -1)
+            await sender.send_gratz_shift(query.message.chat.id, -1)
         elif clarify == 'fw':
-            sender.send_gratz_shift(query.message.chat.id, +1)
+            await sender.send_gratz_shift(query.message.chat.id, +1)
         elif clarify == 'menu':
-            settings.settings(query.message.chat.id, 4)
+            await settings.settings(query.message.chat.id, 4)
         else:
-            sender.send_info(query.message.chat.id, clarify)
+            await sender.send_info(query.message.chat.id, clarify)
     if button == 'sets':
-        elogger.preinfo(f'<< {query.message.chat.id} SRV BUTTON {clarify}')
-        sender.answer_callback_query(query.id)
+        await elogger.preinfo(f'<< {query.message.chat.id} SRV BUTTON {clarify}')
+        await sender.answer_callback_query(query.id)
         if clarify in ('2', '4', '6', '8', '10'):
-            settings.settings(query.message.chat.id, 1, clarify)
+            await settings.settings(query.message.chat.id, 1, clarify)
         elif clarify == 'keyboard':
-            settings.settings(query.message.chat.id, 1)
+            await settings.settings(query.message.chat.id, 1)
         elif clarify in ('regular', 'inline'):
-            settings.settings(query.message.chat.id, 1, clarify)
+            await settings.settings(query.message.chat.id, 1, clarify)
         elif clarify == 'config':
-            settings.settings(query.message.chat.id, 0)
+            await settings.settings(query.message.chat.id, 0)
         elif clarify == 'language':
-            settings.settings(query.message.chat.id, 2)
+            await settings.settings(query.message.chat.id, 2)
         elif clarify[0] == 'x':
-            settings.settings(query.message.chat.id, 2, '*' + clarify[1:])
+            await settings.settings(query.message.chat.id, 2, '*' + clarify[1:])
         elif clarify == 'notifications':
-            settings.settings(query.message.chat.id, 3)
+            await settings.settings(query.message.chat.id, 3)
         elif clarify == 'main_menu':
-            settings.settings(query.message.chat.id, 4)
+            await settings.settings(query.message.chat.id, 4)
         elif clarify == 'review':
-            settings.settings(query.message.chat.id, 42, 0)
+            await settings.settings(query.message.chat.id, 42, 0)
         elif clarify == 'ON':
-            settings.settings(query.message.chat.id, 3, 1)
+            await settings.settings(query.message.chat.id, 3, 1)
         elif clarify == 'OFF':
-            settings.settings(query.message.chat.id, 3, 2)
+            await settings.settings(query.message.chat.id, 3, 2)
         elif clarify == 'help':
-            settings.settings(query.message.chat.id, 911, 0)
+            await settings.settings(query.message.chat.id, 911, 0)
         elif clarify == 'next':
-            settings.settings(query.message.chat.id, 911)
+            await settings.settings(query.message.chat.id, 911)
         elif clarify == '(skip)':
-            settings.settings(query.message.chat.id, 911, 8)
+            await settings.settings(query.message.chat.id, 911, 8)
         elif clarify == 'today':
-            sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(0))
+            await sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(0))
         elif clarify == 'tomorrow':
-            sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(1))
+            await sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(1))
         elif clarify == 'yesterday':
-            sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(-1))
+            await sender.send_gratz_brief(query.message.chat.id, birthday_from_offset(-1))
         elif clarify == 'another_day':
-            sender.send_anotherdaytext(query.message.chat.id)
+            await sender.send_anotherdaytext(query.message.chat.id)
         elif clarify == 'my_favorites':
-            sender.send_likees(query.message.chat.id)
+            await sender.send_likees(query.message.chat.id)
