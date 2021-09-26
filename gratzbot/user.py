@@ -8,7 +8,7 @@ from re import sub
 async def _get_settings(userid):
     data = await memdb.settings(userid)
     if not data:
-        settings = _init_user(userid)
+        settings = await _init_user(userid)
     else:
         settings = json.loads(data)
     return settings
@@ -22,8 +22,10 @@ async def _set_settings(userid, settings):
 async def _init_user(userid, locale='ru', altale='en', day='04.01'):
     settings = {'locale': {'primary': locale, 'altern': altale},
                 'keyboard': {'keys': 4, 'entries': 6, 'step': 4, 'type': 'inline'},
-                'session': {'message_id': 1, 'offset': 0, 'state': 0, 'bday': day}}
+                'session': {'message_id': 1, 'offset': 0, 'state': 0, 'bday': day},
+                'time': {'timezone': '+3', 'notitime': '11:00'}}
     await maindb.set_user(userid, json.dumps(settings))
+    await maindb.set_notitime(userid, '08:00')
     await _set_settings(userid, settings)
     return settings
 
@@ -66,12 +68,20 @@ async def load_param(userid, param):
 async def update_param(userid, param, data_dict):
     elogger.debug(f'update {userid} param {param}, set {data_dict}')
     settings = await _get_settings(userid)
-    settings[param].update(data_dict)
+    if param in settings:
+        settings[param].update(data_dict)
+    else:
+        settings[param] = data_dict
     await _set_settings(userid, settings)
 
 
 async def set_notifications(userid, tumbler):
     await maindb.set_notifications(userid, tumbler)
+
+
+async def set_notitime(userid, notitime):
+    await maindb.set_notifications(userid, 1)
+    await maindb.set_notitime(userid, notitime)
 
 
 async def add_to_fav(userid, wdid):

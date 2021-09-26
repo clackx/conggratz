@@ -34,6 +34,7 @@ class Mdb:
 
     async def try_fetch(self, query, qtype):
         async with self.pool.acquire() as con:
+            data = ''
             try:
                 if qtype == Mdb.ALL:
                     data = await con.fetch(query)
@@ -133,14 +134,19 @@ class Mdb:
                 f"identity='{settings}' WHERE userid={userid}"
         return self.try_commit(query)
 
-    def get_notication_requiring(self):
-        elogger.enter('get noti')
-        query = "SELECT userid FROM users WHERE status=1"
+    def get_notication_requiring(self, whattime):
+        elogger.enter(f'^^ get notifyee @ {whattime}')
+        query = f"SELECT userid FROM users WHERE status=1 AND notitime='{whattime}'"
         return self.try_fetch(query, Mdb.ALL)
 
     def set_notifications(self, userid, tumbler):
-        elogger.debug(f'set_noti {userid} {tumbler}')
+        elogger.debug(f'set_notification {userid} to {tumbler}')
         query = f"UPDATE users SET status={tumbler} WHERE userid={userid}"
+        return self.try_commit(query)
+
+    def set_notitime(self, userid, notitime):
+        elogger.debug(f'set_notitime {userid} to {notitime} UTC')
+        query = f"UPDATE users SET notitime='{notitime}' WHERE userid={userid}"
         return self.try_commit(query)
 
     def get_allfav(self, userid):

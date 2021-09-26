@@ -79,6 +79,12 @@ async def docall(message):
     await settings.settings(message.chat.id, 1)
 
 
+@dp.message_handler(regexp='^\d{1,2}:\d{1,2}$')
+async def docall(message):
+    await elogger.preinfo(f'<< {message.chat.id} STT TIME {message.text}')
+    await settings.settings(message.chat.id, 3, message.text)
+
+
 @dp.message_handler(regexp='^\d{1,2}$')
 async def docall(message):
     await elogger.preinfo(f'<< {message.chat.id} STT NUMERIC {message.text}')
@@ -240,7 +246,7 @@ async def docall(query):
         elif clarify == 'ON':
             await settings.settings(query.message.chat.id, 3, 1)
         elif clarify == 'OFF':
-            await settings.settings(query.message.chat.id, 3, 2)
+            await settings.settings(query.message.chat.id, 3, 0)
         elif clarify == 'help':
             await settings.settings(query.message.chat.id, 911, 0)
         elif clarify == 'next':

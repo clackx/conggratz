@@ -310,6 +310,8 @@ async def get_acc_info(userid):
     locale = lcl.get('primary')
     altale = lcl.get('altern', 'en')
     keyb = await user.load_param(userid, 'keyboard')
+    tm = await user.load_param(userid, 'time')
+    nttm = tm.get('notitime') if tm else '??:??'
     spaces = len(get_translation('number of entries', locale)) + 1
     res_str = f"{get_translation('config', locale)}:\n"
     res_str += f"<code>{(get_translation('language', locale) + ':').ljust(spaces)}  " \
@@ -320,7 +322,8 @@ async def get_acc_info(userid):
     res_str += f"├{(get_translation('type', locale) + ':').ljust(spaces)} {keyb.get('type')} \n"
     res_str += f"├{(get_translation('number of keys', locale) + ':').ljust(spaces)} {keyb.get('keys')} \n"
     res_str += f"├{(get_translation('number of entries', locale) + ':').ljust(spaces)} {keyb.get('entries')} \n"
-    res_str += f"╰{(get_translation('value of step', locale) + ':').ljust(spaces)} {keyb.get('step')}\n</code>"
+    res_str += f"╰{(get_translation('value of step', locale) + ':').ljust(spaces)} {keyb.get('step')}\n"
+    res_str += f"{(get_translation('notitime', locale)+ ':').ljust(spaces)} {nttm}\n</code>"
     return res_str
 
 

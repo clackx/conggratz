@@ -880,6 +880,34 @@ MESSAGES = {
         'ko': '그냥 여기에\n두겠습니다.\n설정 /sets\n메뉴 /menu\n도움 /help\n개발\n@timeclackx',
         'ja': 'ここに残しておきます：\n設定 /sets\nメニュー /menu\nヘルプ /help\n開発\n@timeclackx'
         },
+    'inp_timezone':
+        {'ru': 'Для определения временной зоны введите ваше текущее время (сейчас на часах) в формате ЧЧ:MM',
+         'uk': 'Для визначення часового поясу введіть ваше поточний час (зараз на годиннику) в форматі ГГ:ХХ',
+         'be': 'Для вызначэння часовай зоны увядзіце ваша бягучы час (зараз на часах) у фармаце ГГ:ХХ',
+         'kk': 'Уақыт белдеуін анықтау үшін ағымдағы уақытты (қазір сағат бойынша) СС:ММ форматында енгізіңіз',
+         'en': 'To define the time zone, enter your current time (what time is it now) in HH:MM format',
+         'de': 'Um die Zeitzone zu definieren, geben Sie Ihre aktuelle Uhrzeit (wie spät ist es jetzt) im Format HH:MM ein',
+         'es': 'Para definir la zona horaria, ingrese su hora actual (qué hora es ahora) en formato HH:MM ',
+         'fr': 'Pour définir le fuseau horaire, entrez votre heure actuelle (quelle heure est-il maintenant) au format HH:MM',
+         'it': 'Per definire il fuso orario, inserisci la tua ora attuale (che ora è adesso) nel formato HH:MM',
+         'zh': '要定义时区，请以 HH:MM 格式输入您的当前时间（现在是几点）',
+         'ko': '시간대를 정의하려면 HH:MM 형식으로 현재 시간(지금 몇 시입니까)을 입력하십시오',
+         'ja': 'タイムゾーンを定義するには、現在の時刻（現在の時刻）をHH：MM形式で入力します'
+         },
+    'notitime':
+        {'ru': 'Время оповещений',
+         'be': 'Час абвестак ',
+         'uk': 'Час сповіщень ',
+         'kk': 'Ескерту уақыты ',
+         'en': 'Notification time',
+         'de': 'Benachrichtigungszeit',
+         'es': 'Hora de notificación',
+         'fr': 'Heure de notification ',
+         'it': 'Tempo di notifica',
+         'zh': '通知时间',
+         'ko': '알림 시간',
+         'ja': '通知時間'
+         },
 }
 
 

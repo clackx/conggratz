@@ -1,3 +1,5 @@
+import datetime
+
 from aiogram import types
 from getter import get_acc_info, get_flag
 from messages import get_translation
@@ -26,6 +28,8 @@ async def settings(userid, rtype, message=''):
     locale = lcl.get('primary')
     kb = await user.load_param(userid, 'keyboard')
     kbtype = kb.get('type')
+    s = await user.load_param(userid, 'session')
+    state = s.get('state', 0)
     btn_list = 'menu'
     text = '...'
 
@@ -46,8 +50,7 @@ async def settings(userid, rtype, message=''):
         elif message == '':
             state = 0
         else:
-            s = await user.load_param(userid, 'session')
-            state = s.get('state', 0)
+            pass
         choice = message
 
         if state == 0:
@@ -95,8 +98,6 @@ async def settings(userid, rtype, message=''):
             btn_list = btn_list_list[state]
 
     elif rtype == 2:
-        s = await user.load_param(userid, 'session')
-        state = s.get('state', 0)
         btn_list = ((get_flag('RU'), get_flag('EN'), get_flag('ES'), get_flag('ZH')),
                     (get_flag('BE'), get_flag('UK'), get_flag('DE'), get_flag('KO')),
                     (get_flag('KK'), get_flag('IT'), get_flag('FR'), get_flag('JA')))
@@ -123,16 +124,45 @@ async def settings(userid, rtype, message=''):
             await send_message(userid, get_flag(choise, flagonly=True))
 
     elif rtype == 3:
-        btn_list = 'menu'
         if message == '':
-            text = get_translation('notifications', locale)
-            btn_list = (('ON', 'OFF'),)
+            await send_message(userid, get_translation('inp_timezone', locale))
+            await user.update_param(userid, 'session', {'state': 0})
+            return
         elif message == 1:
             text = get_translation('notifications', locale) + ': ' + get_translation('ON', locale)
             await user.set_notifications(userid, 1)
-        else:
+            await send_message(userid, text)
+            return
+        elif message == 0:
             text = get_translation('notifications', locale) + ': ' + get_translation('OFF', locale)
             await user.set_notifications(userid, 0)
+            await send_message(userid, text)
+            return
+        else:
+            hours, minutes = message.split(':')
+            if int(hours) > 23 or int(minutes) > 59:
+                await send_message(userid, '8==3')
+                return
+            else:
+                if state == 0:
+                    yourutc = int(hours) - int(datetime.datetime.utcnow().strftime('%H'))
+                    utcstr = f'{yourutc}' if yourutc < 0 else f'+{yourutc}'
+                    text = f'Timezone: UTC{utcstr}'
+                    await user.update_param(userid, 'time', {'timezone': utcstr})
+                    await user.update_param(userid, 'session', {'state': 1})
+                    await send_message(userid, text)
+                    await send_message(userid, f"{get_translation('notitime', locale)}:")
+                    return
+                else:
+                    tm = await user.load_param(userid, 'time')
+                    tzone = tm.get('timezone', '3') if tm else '3'
+                    utchours = (24 + int(hours) - int(tzone)) % 24
+                    utcnoti = str(utchours).zfill(2) + ':' + minutes.zfill(2)
+                    usrnoti = hours.zfill(2) + ':' + minutes.zfill(2)
+                    await user.update_param(userid, 'time', {'notitime': usrnoti})
+                    await user.set_notitime(userid, utcnoti)
+                    text = f"{get_translation('notitime', locale)}: {usrnoti}"
+                    btn_list = (('ON', 'OFF'),)
 
     elif rtype == 4 or rtype == 42:
         text = ': : ' + get_translation('main menu', locale) + ' : :'
@@ -153,8 +183,7 @@ async def settings(userid, rtype, message=''):
         elif message == 8:
             helpstate = 9
         else:
-            s = await user.load_param(userid, 'session')
-            helpstate = s.get('state', 0)
+            helpstate = state
         text = get_translation(f'tour{helpstate}', locale).replace('\n', '\n\n\t')
         text += f' <a href="https://conggratz.ru/stati/tour{helpstate}.png">&#8205;</a>'
         btn_list = (('(skip)', 'next'),)
