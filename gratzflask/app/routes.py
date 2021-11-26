@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, send_from_directory
+from flask import request, jsonify, render_template, send_from_directory, make_response
 import os
 import pprint
 import json
@@ -192,7 +192,9 @@ def jsss():
     offset = request.args.get('offset', 0)
     lang = request.args.get('lang', 'en')
 
-    data = Presorted.query.filter_by(bday=bdate).limit(limit).offset(offset)
+    alldata = Presorted.query.filter_by(bday=bdate).filter(
+        getattr(Presorted, f'{lang}wde') != None)
+    data = alldata.limit(limit).offset(offset)
     list_d = []
     for item in data:
         if item:
@@ -210,7 +212,9 @@ def jsss():
                         'occupations': get_tags(wdentity, lang),
                         'countries': get_flags_and_countries(wdentity)})
 
-    return jsonify(results)
+    response = make_response(jsonify(results))
+    response.headers["X-Total-Count"] = alldata.count()
+    return response
 
 
 @app.route('/stati/<path:filename>')
