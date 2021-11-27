@@ -4,6 +4,7 @@ import pprint
 import json
 import datetime
 import hashlib
+from random import randint
 from app import app
 from app.models import People, Occupations, Tags, Presorted, Countries, Flags
 
@@ -81,7 +82,7 @@ def get_flags_and_countries(wdentity):
 
 def get_wc_thumb(photo, width=420, frmt='jpg'):
     if not photo:
-        return "https://conggratz.ru/stati/nophoto2.jpg"
+        return f"https://conggratz.ru/stati/nophoto{randint(1,3)}.jpg"
     photo = photo.replace(' ', '_')
     m = hashlib.md5()
     m.update(photo.encode('utf-8'))
