@@ -1,0 +1,62 @@
+.divopt1 {
+  padding: 0px;
+  margin: 3px 0 0 5px;
+  display: flex;
+}
+
+.divopt2 {
+  padding: 0px;
+  display: flex;
+}
+
+.flagimg1 {
+  margin: 5px 0px 0 0;
+  width: 42px;
+  object-fit: contain;
+  align-self: flex-start;
+}
+
+.flagimg2 {
+  margin: 5px 0px 0 0;
+  width: 36px;
+  object-fit: contain;
+  align-self: flex-start;
+}
+
+.textdiv {
+  padding: 8px 0px 0px 5px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.myoption {
+  padding: 0 0 5px 5px;
+  margin: 5px;
+  width: 100px;
+  background: rgb(6, 73, 47);
+  border: 2px solid rgb(10, 163, 104);
+  border-radius: 7px 7px 13px 13px;
+  font-family: "Open Sans Condensed", sans-serif;
+  font-size: 22px;
+}
+
+.myoption:hover {
+  border-color: "red";
+  background-color: 'yellow';
+  color: "red"
+}
+
+.mysingle {
+  height: 42px;
+  padding-bottom: 10px;
+  border-radius: 13px 13px 7px 7px;
+  font-family: "Open Sans Condensed", sans-serif;
+  text-shadow: #01332a 0px 1px;
+  font-size: 22px;
+}
+
+.myselect {
+  padding: 15px 10px 0 20px;
+  margin: 3px;
+  color: orange;
+}

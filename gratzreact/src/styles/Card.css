@@ -1,0 +1,83 @@
+.card {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  width: 40%;
+  display: flex;
+  padding: 15px;
+  margin-top: 15px;
+  justify-content: space-between;
+  align-items: center;
+  width: 600px;
+  cursor: pointer;
+}
+
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+}
+
+.container {
+  max-height: 600px;
+  padding: 2px 16px;
+  overflow: hidden;
+}
+
+.personname {
+  font-family: "Open Sans Condensed", sans-serif;
+  font-size: 48px;
+  color: rgb(156, 152, 152);
+  line-height: 85%;
+}
+
+.personnamemdl {
+  font-family: "Open Sans Condensed", sans-serif;
+  font-size: 48px;
+  font-weight: bold;
+  color: rgb(50, 3, 77);
+  text-shadow: #e4eeec 1px 1px; 
+  line-height: 85%;
+}
+
+.persondescr {
+  font-size: 14px;
+  text-transform: uppercase;
+  color: rgb(215, 52, 3);
+  margin-top: 20px;
+  letter-spacing: 0.3em;
+}
+
+.personoccus {
+  margin-top: 20px;
+  color: #217969;
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.personoccus2 {
+  font-family:  sans-serif;
+  margin-top: 20px;
+  color: #217969;
+  font-size: 16px;
+  line-height: 20px;
+  /* -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);  */
+  filter: saturate(var(--value, 30%));
+}
+
+.personphoto {
+  max-height: 350px;
+  width: 200px;
+  object-fit: contain;
+  object-fit: cover; object-position: 100% 0;
+}
+
+.persontext {
+  padding: 20px 0 5px 5px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #112f42;
+  font-family: serif;
+  font-size: 18px;
+  text-indent: 30px;
+  text-align: justify;
+}

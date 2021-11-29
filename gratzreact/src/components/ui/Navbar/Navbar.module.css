@@ -1,0 +1,58 @@
+.headcontainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 700px;
+  height: 100px;
+  padding: 0px;
+  margin: 0px;
+  border-radius: 0 0 25px 25px;
+  border-color: orange;
+  border: 0px solid;
+  background-size: 50%;
+  /* box-shadow: #0AF73A 0px 0px 20px; */
+  /* box-shadow: #f06306 0px 0px 50px; */
+  /* box-shadow: #d9f100 0px -10px 30px 0px; */
+}
+
+.left {
+  background-size: 100% 100%;
+  height: 100px;
+  width: 22%;
+}
+
+.right {
+  background-size: 100% 100%;
+  height: 100px;
+  width: 25%;
+}
+
+.center {
+  width: 53%;
+  background: url("https://conggratz.ru/stati/centre2.png");
+  background-size: 100% 100%;
+  height: 100px;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  display: flex;
+}
+
+.centeredge {
+  width: 25%;
+  padding: 10px;
+}
+
+.centercenter {
+  width: 50%;
+  height: 100%;
+  padding-top: 47px;
+}
+
+.rightdiv {
+  padding: 20px 0 0 20px;
+}
+
+.buttonimg {
+  height: 42px;
+}

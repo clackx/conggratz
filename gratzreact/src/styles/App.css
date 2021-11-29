@@ -1,0 +1,49 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: aliceblue;
+}
+
+#root {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.App {
+  width: 600px;
+}
+
+
+h2 {
+  font-family: 'Fira Sans Extra Condensed', "Open Sans Condensed", sans-serif;
+  font-size: 26px;
+  color: rgb(156, 152, 152);
+  text-shadow: #074237 1px 3px; 
+  line-height: 85%;
+  white-space: nowrap;
+}
+
+.lnk {
+  color: inherit;
+  text-decoration: inherit;
+  word-wrap: break-word;
+}
+
+
+.hrfooter {
+  border: 0;
+  height: 1px;
+  margin: 30px;
+  height: 1px;
+  background-image: linear-gradient(to right, rgba(0, 0, 0, 0), 
+                       rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+}
+
+
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans+Condensed:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans+Extra+Condensed&family=Open+Sans+Condensed:wght@300&display=swap');

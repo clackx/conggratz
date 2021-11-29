@@ -1,0 +1,27 @@
+.formy {
+  height: 100%;
+  width: 800px;
+}
+
+.modldiv {
+  display: flex;
+  padding: 15px;
+  margin-top: 15px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modlphoto {
+  display: flex;
+}
+
+.modlimg {
+  max-height: 600px;
+  width: 400px;
+  object-fit: contain;
+  object-fit: cover; object-position: 100% 0;
+}
+
+.divloader {
+  padding: 42px 0 0 120px;
+}
