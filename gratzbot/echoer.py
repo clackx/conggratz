@@ -5,25 +5,20 @@ import asyncpg
 
 
 class Evdb:
+
     def __init__(self):
-        try:
-            self.loop = asyncio.get_event_loop()
+        self.pool = None
 
-            self.loop = asyncio.get_event_loop()
-            self.pool = self.loop.run_until_complete(
-                asyncpg.create_pool(user=DBUSER, database=DBNAME,
-                                    host="127.0.0.1", port="5432"))
+    async def create_pool(self):
+        if not self.pool:
+            dsn = f"postgres://{DBUSER}@127.0.0.1:5432/{DBNAME}"
+            self.pool = await asyncpg.create_pool(dsn=dsn)
             print('[ evdb connection ok ]')
-        except asyncpg.exceptions.PostgresError as error:
-            print('!! echoer postgres error ::', error)
-
-    async def connect(self):
-        """init asyncpg pool for noserver using"""
-        dsn = f"postgres://{DBUSER}@127.0.0.1:5432/{DBNAME}"
-        self.pool = await asyncpg.create_pool(dsn=dsn)
-        print('[ evdb connection ok ]')
 
     async def try_commit(self, query, values):
+        if not self.pool:
+            await self.create_pool()
+
         async with self.pool.acquire() as con:
             try:
                 await con.execute(query, *values)

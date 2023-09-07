@@ -19,20 +19,20 @@ class Mdb:
     (ALL, ONE) = (8, 0)
 
     def __init__(self):
-        self.loop = asyncio.get_event_loop()
-        self.pool = self.loop.run_until_complete(
-            asyncpg.create_pool(
-                user=DBUSER, database=DBNAME,
-                host="127.0.0.1", port="5432"))
-        elogger.debug('[] PostgreSQL 8:==э connected')
+        self.pool = None
 
-    async def connect(self):
-        """init asyncpg pool for noserver using"""
-        dsn = f"postgres://{DBUSER}@127.0.0.1:5432/{DBNAME}"
-        self.pool = await asyncpg.create_pool(dsn=dsn)
-        elogger.debug('[] PostgreSQL 8:==э connected')
+
+    async def create_pool(self):
+        if not self.pool:
+            dsn = f"postgres://{DBUSER}@127.0.0.1:5432/{DBNAME}"
+            self.pool =  await asyncpg.create_pool(dsn=dsn)
+            print('[ maindb connection ok ]')
+
 
     async def try_fetch(self, query, qtype):
+        if not self.pool:
+            await self.create_pool()
+
         async with self.pool.acquire() as con:
             data = ''
             try:
@@ -46,6 +46,9 @@ class Mdb:
             return data
 
     async def try_commit(self, query):
+        if not self.pool:
+            await self.create_pool()
+
         async with self.pool.acquire() as con:
             try:
                 await con.execute(query)
@@ -145,9 +148,14 @@ class Mdb:
         return self.try_commit(query)
 
     def set_notitime(self, userid, notitime):
-        elogger.debug(f'set_notitime {userid} to {notitime} UTC')
+        elogger.debug(f'set_notitime {userid} to {notitime}')
         query = f"UPDATE users SET notitime='{notitime}' WHERE userid={userid}"
         return self.try_commit(query)
+
+    def get_notitime(self, userid):
+        elogger.enter(f'^^ get_notitime of {userid}')
+        query = f"SELECT notitime from users WHERE userid={userid}"
+        return self.try_fetch(query, Mdb.ONE)
 
     def get_allfav(self, userid):
         elogger.enter(f'^^ get_likees {userid}')
@@ -166,16 +174,26 @@ class Mdb:
 
 
 class Memdb:
+
     def __init__(self):
-        self.loop = asyncio.get_event_loop()
-        self.connection = self.loop.run_until_complete(
-            aiosqlite.connect(":memory:", check_same_thread=False))
+        self.connection = None
+
+    async def create_connection(self):
+        if not self.connection:
+            self.connection = await aiosqlite.connect(":memory:", check_same_thread=False)
+            print('[ memdb connection ok ]')
 
     async def create(self):
+        if not self.connection:
+            await self.create_connection()
+
         await self.connection.execute(f"CREATE TABLE memble (userid TEXT UNIQUE, settings TEXT)")
         await self.connection.commit()
 
     async def settings(self, userid):
+        if not self.connection:
+            await self.create_connection()
+
         data = ''
         try:
             cur = await self.connection.execute(f"SELECT settings FROM memble WHERE userid={userid}")

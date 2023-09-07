@@ -6,9 +6,11 @@ import config
 from mdb import maindb
 from aiogram import Bot, Dispatcher
 
-
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+scheduler = AsyncIOScheduler()
+scheduler.start()
 bot = Bot(token=config.API_TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher(apscheduler=scheduler)
 
 
 def get_wc_thumb(photo, width=420):

@@ -1,4 +1,4 @@
-import aiogram
+from aiogram import exceptions
 import datetime
 from time import sleep
 import getter
@@ -161,48 +161,43 @@ async def smartsend(userid, text, markup, kbtype, noedit=False):
     await user.update_param(userid, 'session', {'sets_mess_id': message_id})
 
 
-async def send_message(userid, message, markup=''):
+async def send_message(userid, message, markup=None):
     message_id = ''
     try:
         message_obj = await bot.send_message(chat_id=userid, text=message, reply_markup=markup,
-                                             parse_mode='html', disable_notification=True)
+            parse_mode='html', disable_notification=True, disable_web_page_preview=True)
         message_id = message_obj.message_id
-    except aiogram.exceptions.ChatNotFound as err:
+
+    except exceptions.TelegramNotFound as err:
         await elogger.warn(f'{userid} ! send_message ChatNotFound exception :: {err}')
         await elogger.preinfo(f'-- {userid} SRV user disabled')
         await user.set_notifications(userid, 0)
-    except aiogram.exceptions.BotBlocked as err:
-        await elogger.warn(f'{userid} ! send_message BotBlocked exception :: {err}')
+    except exceptions.TelegramForbiddenError as err:
+        await elogger.warn(f'{userid} ! send_message ForbiddenError exception :: {err}')
         await elogger.preinfo(f'-- {userid} SRV user disabled')
         await user.set_notifications(userid, 0)
-    except aiogram.exceptions.RetryAfter as err:
+    except exceptions.TelegramRetryAfter as err:
         await elogger.warn(f'{userid} ! send_message RetryAfter exception :: {err}')
         retry_after = err.timeout
         sleep(retry_after)
         await send_message(userid, message, markup)
-    except aiogram.exceptions.BadRequest as err:
+    except exceptions.TelegramBadRequest as err:
         await elogger.warn(f'{userid} ! send_message BadRequest exception :: {err}')
-    except aiogram.exceptions.NetworkError as err:
+    except exceptions.TelegramNetworkError as err:
         await elogger.warn(f'{userid} ! send_message NetworkError exception :: {err}')
     if message_id:
         await user.update_param(userid, 'session', {'message_id': message_id})
     return message_id
 
 
-async def edit_message(userid, message_id, text, markup=''):
+async def edit_message(userid, message_id, text, markup=None):
     try:
         await bot.edit_message_text(text=text, chat_id=userid, message_id=message_id,
                                     parse_mode="html", reply_markup=markup)
         return True
-    except aiogram.exceptions.MessageNotModified as err:
-        err = str(err)
-        if err[72: 92] == 'are exactly the same':
-            err = err[:25] + 'every day ' + err[72: 92]
+    except exceptions.TelegramBadRequest as err:
         await elogger.warn(f'{userid} ! edit_message BadRequest exception :: {err}')
-        return True
-    except aiogram.exceptions.BadRequest as err:
-        await elogger.warn(f'{userid} ! edit_message BadRequest exception :: {err}')
-    except aiogram.exceptions.NetworkError as err:
+    except exceptions.TelegramNetworkError as err:
         await elogger.warn(f'{userid} ! edit_message NetworkError exception :: {err}')
     return False
 
@@ -211,7 +206,7 @@ async def delete_message(userid, message_id):
     if message_id:
         try:
             await bot.delete_message(chat_id=userid, message_id=message_id)
-        except aiogram.exceptions.BadRequest as err:
+        except exceptions.TelegramBadRequest as err:
             await elogger.warn(f'{userid} ! delete_message BadRequest exception :: {err}')
 
 
@@ -219,5 +214,5 @@ async def answer_callback_query(query_id):
     if query_id:
         try:
             await bot.answer_callback_query(query_id)
-        except aiogram.exceptions.BadRequest as err:
+        except exceptions.TelegramBadRequest as err:
             await elogger.warn(f'{query_id} ! answer_callback_query BadRequest exception :: {err}')

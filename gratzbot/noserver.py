@@ -17,9 +17,6 @@ userid = 1146011385
 
 
 async def main():
-    await evdb.connect()
-    await maindb.connect()
-
     # print brief to console
     text, _tmp1, _tmp2 = await getter.get_day_plus(userid, '09.09', 0)
     print(text)

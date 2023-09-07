@@ -10,9 +10,8 @@ import user
 
 def get_button(name, locale, kbtype='regular'):
     if kbtype == 'regular':
-        button = types.KeyboardButton
         text = get_translation(name, locale)
-        return button(text)
+        return types.KeyboardButton(text=text)
     else:
         button = types.InlineKeyboardButton
         if name[3:5] in ('RU', 'BE', 'UK', 'KK', 'EN', 'DE', 'ES', 'FR', 'IT', 'ZH', 'KO', 'JA'):
@@ -124,6 +123,7 @@ async def settings(userid, rtype, message=''):
             await send_message(userid, get_flag(choise, flagonly=True))
 
     elif rtype == 3:
+        btn_list = 'menu'
         if message == '':
             await send_message(userid, get_translation('inp_timezone', locale))
             await user.update_param(userid, 'session', {'state': 0})
@@ -131,13 +131,9 @@ async def settings(userid, rtype, message=''):
         elif message == 1:
             text = get_translation('notifications', locale) + ': ' + get_translation('ON', locale)
             await user.set_notifications(userid, 1)
-            await send_message(userid, text)
-            return
         elif message == 0:
             text = get_translation('notifications', locale) + ': ' + get_translation('OFF', locale)
             await user.set_notifications(userid, 0)
-            await send_message(userid, text)
-            return
         else:
             hours, minutes = message.split(':')
             if int(hours) > 23 or int(minutes) > 59:
@@ -200,15 +196,15 @@ async def settings(userid, rtype, message=''):
                     ('notifications', 'review'),
                     ('my favorites', 'main menu'))
     if btn_list:
-        if kbtype == 'regular':
-            markup = types.ReplyKeyboardMarkup(resize_keyboard=True,
-                                               row_width=len(btn_list[0]), one_time_keyboard=True)
-        else:
-            markup = types.InlineKeyboardMarkup(row_width=len(btn_list[0]))
+        result_list = []
+        for btn_pair in btn_list:
+            result_list.append([get_button(btn, locale, kbtype=kbtype) for btn in btn_pair])
 
-        for btn_tuple in btn_list:
-            res = [get_button(btn, locale, kbtype=kbtype) for btn in btn_tuple]
-            markup.add(*res)
+        if kbtype == 'regular':
+            markup = types.ReplyKeyboardMarkup(keyboard=result_list,
+                resize_keyboard=True, one_time_keyboard=True)
+        else:
+            markup = types.InlineKeyboardMarkup(inline_keyboard=result_list)
 
         noedit = True if message == 'noedit' else False
         await smartsend(userid, text, markup, kbtype, noedit)

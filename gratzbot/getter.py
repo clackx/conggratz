@@ -188,9 +188,9 @@ async def get_day_plus(userid, bday, offset):
     kbtype = keyboard.get('type')
     debug = True if userid == admin_id else False
     text, names, entities = await get_day_info(bday, locale, altale, offset, count, debug)
-    keyboard = get_keyboard(names, buttons, entities, kbtype, offset)
+    markup = get_keyboard(names, buttons, entities, kbtype, offset)
     elogger.exiter('[OK] MAIN', text)
-    return text, keyboard, kbtype
+    return text, markup, kbtype
 
 
 async def get_day_info(bday, locale, altale, offset, count, debug=False):
@@ -250,10 +250,6 @@ def get_button(name, entity='', kbtype='regualr'):
 def get_keyboard(names, buttons, entities, kbtype, offset):
     """ build keyboard markup from list of names and 2 nav buttons """
     elogger.debug(f'get_keyboard {str(names)[:100]}')
-    if kbtype == 'regular':
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    else:
-        markup = types.InlineKeyboardMarkup(row_width=2)
 
     is_odd = True if (len(names) % 2) != 0 else False
     is_end = False
@@ -261,38 +257,44 @@ def get_keyboard(names, buttons, entities, kbtype, offset):
         buttons = len(names) if not is_odd else len(names) - 1
         is_end = True
 
+    buttons_list = []
     for i in range(0, int(buttons), 2):
-        markup.add(get_button(names[i], entities[i], kbtype),
-                   get_button(names[i + 1], entities[i + 1], kbtype))
+        buttons_list.append([
+            get_button(names[i], entities[i], kbtype),
+            get_button(names[i + 1], entities[i + 1], kbtype)])
 
     if offset == 0:
-        markup.add(get_button('<<< Menu', 'menu', kbtype),
-                   get_button('FW >>>', 'fw', kbtype))
-        return markup
-
-    if not is_end:
-        markup.add(get_button('<<RW', 'rw', kbtype), get_button('FW>>', 'fw', kbtype))
+        buttons_list.append([
+            get_button('<<< Menu', 'menu', kbtype),
+            get_button('FW >>>', 'fw', kbtype)])
     else:
-        if is_odd:
-            markup.add(get_button(names[i + 2], entities[i + 2], kbtype),
-                       get_button('<<RW', 'rw', kbtype))
+        if not is_end:
+            buttons_list.append([
+                get_button('<<RW', 'rw', kbtype),
+                get_button('FW>>', 'fw', kbtype)])
         else:
-            markup.add(get_button('<<RW', 'rw', kbtype))
+            if is_odd:
+                buttons_list.append([
+                    get_button(names[len(names)-1], entities[len(names)-1], kbtype),
+                    get_button('<<RW', 'rw', kbtype)])
+            else:
+                buttons_list.append([get_button('<<RW', 'rw', kbtype)])
 
-    return markup
+    if kbtype == 'regular':
+        return types.ReplyKeyboardMarkup(resize_keyboard=True, keyboard=buttons_list)
+    else:
+        return types.InlineKeyboardMarkup(inline_keyboard=buttons_list)
 
 
 def get_inline_keyboard(wdid, name, locale):
     """ build inline keyboard markup with (so far) 2 buttons, Like and More.. """
     elogger.debug(f'get_inline_keyboard {wdid}')
     name = name.replace(u'\u2019', '%E2%80%99')
-    keyboard = types.InlineKeyboardMarkup(row_width=2)
     info_btn = types.InlineKeyboardButton(text=u'\U0001F497' + " Like", callback_data=f'like_{wdid}')
     more_btn = types.InlineKeyboardButton(text=u'\U0001F9E0' + " More..", callback_data=f'more_{wdid}')
     wiki_btn = types.InlineKeyboardButton(text=u'\U0001F310' + " Wiki",
                                           url=f'https://{locale}.m.wikipedia.org/wiki/{name}')
-    keyboard.row(info_btn, more_btn, wiki_btn)
-    return keyboard
+    return types.InlineKeyboardMarkup(inline_keyboard=[[info_btn, more_btn, wiki_btn]])
 
 
 async def get_photo_link(wdid):
@@ -312,6 +314,7 @@ async def get_acc_info(userid):
     keyb = await user.load_param(userid, 'keyboard')
     tm = await user.load_param(userid, 'time')
     nttm = tm.get('notitime') if tm else '??:??'
+    tmzn = tm.get('timezone') if tm else '??'
     spaces = len(get_translation('number of entries', locale)) + 1
     res_str = f"{get_translation('config', locale)}:\n"
     res_str += f"<code>{(get_translation('language', locale) + ':').ljust(spaces)}  " \
@@ -323,7 +326,7 @@ async def get_acc_info(userid):
     res_str += f"├{(get_translation('number of keys', locale) + ':').ljust(spaces)} {keyb.get('keys')} \n"
     res_str += f"├{(get_translation('number of entries', locale) + ':').ljust(spaces)} {keyb.get('entries')} \n"
     res_str += f"╰{(get_translation('value of step', locale) + ':').ljust(spaces)} {keyb.get('step')}\n"
-    res_str += f"{(get_translation('notitime', locale)+ ':').ljust(spaces)} {nttm}\n</code>"
+    res_str += f"{(get_translation('notitime', locale)+ ':')}  {nttm} GMT{tmzn}\n</code>"
     return res_str
 
 

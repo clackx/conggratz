@@ -80,7 +80,7 @@ async def set_notifications(userid, tumbler):
 
 
 async def set_notitime(userid, notitime):
-    await maindb.set_notifications(userid, 1)
+    await set_notifications(userid, 1)
     await maindb.set_notitime(userid, notitime)
 
 
