@@ -414,7 +414,8 @@ async def check_tags(entities):
 
 
 async def find_properties(wdid, locale, altale):
-    """ future feature """
+    """ get a set of statements from Wikidata and its translation """
+
     ignorelist = ['P19', 'P20', 'P21', 'P22', 'P25', 'P26', 'P27', 'P31', 'P40', 'P53', 'P91',
                   'P102', 'P103', 'P106', 'P119', 'P140', 'P172', 'P184', 'P185', 'P358', 'P451',  # 'P361',
                   'P511', 'P551', 'P552', 'P734', 'P735', 'P802', 'P859', 'P910',
@@ -434,6 +435,41 @@ async def find_properties(wdid, locale, altale):
         reqs = []  # list of aiohttp requests
         propses = []  # ordered list of props
         bigdict = {}  # list of entities passed to grequests
+
+        """ Social media links """
+        idents_res = ''
+        idents = {'P2397': ('▶ YT','https://www.youtube.com/channel/'),
+                  'P2013': ('🐦 tw', 'https://twitter.com/'),
+                  'P2003': ('📷 IG', 'https://www.instagram.com/'),
+                  'P3185': ('✌ VK', 'https://vk.com/'),
+                  'P2002': ('👤 FB', 'https://www.facebook.com/'),
+                  'P2604': ('🎞 KP', 'https://www.kinopoisk.ru/name/'),
+                  'P345': ('🗃 IMDB', 'https://www.imdb.com/name/'),
+                  'P2949': ('🌲 WikiTree', 'https://www.wikitree.com/wiki/'),
+                  }
+
+        for prop in idents:
+            if prop in props:
+                value = claims[prop][0]['mainsnak']['datavalue']['value']
+                result = f"{idents[prop][0]} : : <a href='{idents[prop][1]}{value}'>"
+                if prop in ('P2397', 'P2604'):
+                    result += '(channel)</a>'
+                else:
+                    result += f'{value}</a>'
+                idents_res += result+'\n'
+
+        sites = {'P856': '🌐 site', 'P1581': '🌐 blog'}
+        for prop in sites:
+            if prop in props:
+                value = claims[prop][0]['mainsnak']['datavalue']['value']
+                result = f"{sites[prop]} : : {value}"
+                idents_res += result + '\n'
+
+        idents_res += f"WikiData : : <a href='https://www.wikidata.org/wiki/{wdid}'>{wdid}</a>"
+        result_dict['Q1'] = [get_translation('external', locale), idents_res]
+
+        """ Other props (statements) """
+        photos = {}
         for prop in props:
             if prop not in ignorelist:
                 entities = [prop, ]
@@ -442,18 +478,36 @@ async def find_properties(wdid, locale, altale):
                         await elogger.datawarn(f"{prop} no value in {entry['mainsnak']}")
                         continue
                     entry_value = entry['mainsnak']['datavalue']['value']
-                    if type(entry_value) == dict:
+                    datatype = entry['mainsnak']['datatype']
+
+                    if datatype == 'wikibase-item':
                         entity = entry_value.get('id', 0)
                         if entity:
                             entities.append(entity)
 
+                    elif datatype == 'monolingualtext':
+                        loc_name = f" {entry_value.get('text')} ({entry_value.get('language')})"
+                        result_dict['Q0'] = [get_translation('localname', locale), loc_name]
+
+                    else:
+                        if datatype != 'external-id':
+                            #print(prop, '::>', entry['mainsnak']['datatype'], entry['mainsnak']['datavalue'], '\n\n')
+                            pass
+
+                    if prop == 'P18':
+                        jpg = get_wc_thumb(entry_value, width=800)
+                        link = f'<a href="{jpg}">&#8205;</a>'
+                        idx = str(len(photos.keys()))
+                        photos['Foto'+idx] = ['Foto '+idx, link]
+
                 if len(entities) > 1:
-                    url = f'https://www.wikidata.org/w/api.php?props=labels&languages=en|{locale}|{altale}' \
+                    url = f'https://www.wikidata.org/w/api.php?props=labels&languages=en|ru|{locale}|{altale}' \
                           f'&ids={"|".join(entities[:49])}&action=wbgetentities&format=json'
                     reqs.append(asyncio.ensure_future(session.get(url)))
                     propses.append(prop)
                     bigdict[prop] = entities[:49]
 
+        """ Get translation of prop values based on locale """
         if reqs:
             requests = await asyncio.gather(*reqs)
             propindx = -1
@@ -468,12 +522,15 @@ async def find_properties(wdid, locale, altale):
                         entities = bigdict[prop]
                         values = []
                         for entity in entities:
-                            entry = r['entities'][entity]['labels']
-                            loc_dict = {'en': None, 'ru': None, locale: None}
-                            for loc in (locale, altale, 'en'):
-                                if loc in entry:
-                                    value = entry[loc]['value']
-                                    loc_dict[loc] = value
+                            if 'labels' not in r['entities'][entity]:
+                                loc_dict = {'en': '(deleted)', 'ru': '(удалено)'}
+                            else:
+                                entry = r['entities'][entity]['labels']
+                                loc_dict = {'en': None, 'ru': None, locale: None}
+                                for loc in (locale, altale, 'en', 'ru'):
+                                    if loc in entry:
+                                        value = entry[loc]['value']
+                                        loc_dict[loc] = value
                             tmp, value = await get_notional_value(loc_dict, locale, altale)
                             if value not in values:
                                 values.append(value)
@@ -481,4 +538,8 @@ async def find_properties(wdid, locale, altale):
                         if len(values):
                             result_dict[prop] = values
         await session.close()
+
+        photos.pop('Foto0', None)
+        result_dict.update(photos)
+
         return result_dict

@@ -81,8 +81,12 @@ async def send_more(userid, wdid, query_id):
         text = f'{props_dict[prop][0].capitalize()}:\n'
         if userid == admin_id: text = text[:-1] + f' ({prop})\n'
         for value in props_dict[prop][1:]:
-            text += f'• {value} \n'
-        await send_message(userid, text)
+            if prop[0] == 'P':
+                text += '• '
+            text += f'{value} \n'
+
+        is_preview = True if prop[0] == 'F' else False
+        await send_message(userid, text, is_preview=is_preview)
     if not props_dict:
         await send_message(userid, 'N/A')
     await answer_callback_query(query_id)
@@ -161,11 +165,11 @@ async def smartsend(userid, text, markup, kbtype, noedit=False):
     await user.update_param(userid, 'session', {'sets_mess_id': message_id})
 
 
-async def send_message(userid, message, markup=None):
+async def send_message(userid, message, markup=None, is_preview=False):
     message_id = ''
     try:
         message_obj = await bot.send_message(chat_id=userid, text=message, reply_markup=markup,
-            parse_mode='html', disable_notification=True, disable_web_page_preview=True)
+            parse_mode='html', disable_notification=True, disable_web_page_preview=not is_preview)
         message_id = message_obj.message_id
 
     except exceptions.TelegramNotFound as err:

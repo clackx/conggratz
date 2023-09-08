@@ -908,6 +908,34 @@ MESSAGES = {
          'ko': '알림 시간',
          'ja': '通知時間'
          },
+      'localname':
+        {'ru': 'Имя на родном языке',
+         'be': 'Назва на роднай мове',
+         'uk': 'Назва рідною мовою',
+         'kk': 'Ана тіліндегі атау',
+         'en': 'Name in native language',
+         'de': 'Name in Muttersprache',
+         'es': 'Nombre en lengua nativa',
+         'fr': 'Nom dans la langue maternelle',
+         'it': 'Nome nella lingua madre',
+         'zh': '母语名称',
+         'ko': '모국어로 된 이름',
+         'ja': '母国語での名前'
+        },
+      'external':
+        {'ru': 'Внешние ссылки',
+         'be': 'Знешнія спасылкі',
+         'uk': 'Зовнішні посилання',
+         'kk': 'Сыртқы сілтемелер',
+         'en': 'External links',
+         'de': 'Externe Links',
+         'es': 'Enlaces externos',
+         'fr': 'Liens externes',
+         'it': 'Link esterno',
+         'zh': '外部链接',
+         'ko': '외부 링크',
+         'ja': '外部リンク',
+        }
 }
 
 

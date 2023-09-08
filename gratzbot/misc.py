@@ -13,7 +13,7 @@ bot = Bot(token=config.API_TOKEN)
 dp = Dispatcher(apscheduler=scheduler)
 
 
-def get_wc_thumb(photo, width=420):
+def get_wc_thumb(photo, width=800):
     """ generate full wikimedia URL from the filename hash
     https://commons.wikimedia.org/wiki/Commons:FAQ#What_are_the_strangely_named_components_in_file_paths.3F
     code from https://stackoverflow.com/a/64323021/1230965 """
