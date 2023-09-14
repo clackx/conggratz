@@ -55,16 +55,24 @@ const PersonForm = (props) => {
               alt="" />
           </div>
           <div className="container">
+
             <p className="personnamemdl">{props.person.links[langCurrent]}</p>
-            <p className="persondescr"> {props.person.descrs[langCurrent]}</p>
+            <div>
+              {props.person.countries.svg_flags[0] &&
+                <div className="personflag">
+                  <img className="flagimage"
+                    src={props.person.countries.svg_flags[0]} alt='flag' />
+                </div>}
+              <p className="persondescr"> {props.person.descrs[langCurrent]}</p>
+            </div>
             <div style={{ marginTop: 10 }}>
               <p className="personoccus2">
                 {getJoined(props.person.occupations.list)}
               </p>
             </div>
             {isWikiLoading &&
-            <div className="divloader">
-              <DottedLoader /> </div>}
+              <div className="divloader">
+                <DottedLoader /> </div>}
             <p className="persontext">
               {info}
             </p>
