@@ -1,7 +1,7 @@
 const express = require('express')
 // var cors = require('cors'); 
 const db = require('./db');
-const { formatData } = require('./misc');
+const { formatData, languages } = require('./misc');
 
 const app = express()
 const port = 3030
@@ -16,7 +16,8 @@ app.get('/', async (_, response) => {
 app.get('/json', async (request, response) => {
     console.log(new Date().toLocaleString(), request.query)
     const bdate = request.query.bdate || '02.01'
-    const lang = request.query.lang || 'en'
+    let lang = request.query.lang || 'en'
+    if (!languages.includes(lang)) lang = 'en'
     const limit = request.query.limit || 3
     const offset = request.query.offset || 0
 

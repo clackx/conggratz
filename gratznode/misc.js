@@ -29,12 +29,15 @@ function capitalizeString(textString) {
 }
 
 
+const latList = ['en', 'es', 'fr', 'de', 'it'];
+const kyrList = ['ru', 'be', 'uk', 'kk'];
+const hierList = ['zh', 'ja', 'ko'];
+const languages = [...latList, ...kyrList, ...hierList];
+exports.languages = languages;
+
+
 function parseAndNormalize(dataString, capitalize = false) {
     const resultDict = {};
-    const latList = ['en', 'es', 'fr', 'de', 'it'];
-    const kyrList = ['ru', 'be', 'uk', 'kk'];
-    const hierList = ['zh', 'ja', 'ko'];
-    const languages = [...latList, ...kyrList, ...hierList];
     let dict = {};
 
     try {
