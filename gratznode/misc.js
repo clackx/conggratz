@@ -48,11 +48,12 @@ function parseAndNormalize(dataString, capitalize = false) {
     if (capitalize) for (l of languages) dict[l] = capitalizeString(dict[l]);
     for (let l of languages) resultDict[l] = dict[l] || '--nodata--';
 
-    latDefault = dict['en'] || dict['es'] || dict['fr'] || dict['de'] || dict['it'];
-    kyrDefault = dict['ru'] || dict['be'] || dict['uk'] || dict['kk'] || latDefault;
-    latDefault = latDefault || kyrDefault || '--nodata--';;
-    hierDefault = dict['zh'] || dict['jp'] || dict['ko'] || latDefault;
-
+    let latDefault = dict['en'] || dict['es'] || dict['fr'] || dict['de'] || dict['it'];
+    let kyrDefault = dict['ru'] || dict['be'] || dict['uk'] || dict['kk'];
+    let hierDefault = dict['zh'] || dict['ja'] || dict['ko'];
+    latDefault = latDefault || kyrDefault || hierDefault ||  '--nodata--';
+    kyrDefault = kyrDefault || latDefault;
+    hierDefault = hierDefault || latDefault;
 
     for (l of latList) resultDict[l] = dict[l] || latDefault;
     for (l of kyrList) resultDict[l] = dict[l] || kyrDefault || latDefault;
