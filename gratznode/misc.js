@@ -49,11 +49,13 @@ function parseAndNormalize(dataString, capitalize = false) {
     }
 
     if (capitalize) for (l of languages) dict[l] = capitalizeString(dict[l]);
-    for (let l of languages) resultDict[l] = dict[l] || '--nodata--';
 
-    let latDefault = dict['en'] || dict['es'] || dict['fr'] || dict['de'] || dict['it'];
-    let kyrDefault = dict['ru'] || dict['be'] || dict['uk'] || dict['kk'];
-    let hierDefault = dict['zh'] || dict['ja'] || dict['ko'];
+    const findDefault = ({obj, list}) => { for(key of list) if (obj[key]) return obj[key] }
+
+    let latDefault = findDefault({ obj: dict, list: latList });
+    let kyrDefault = findDefault({ obj: dict, list: kyrList });
+    let hierDefault = findDefault({ obj: dict, list: hierList });
+
     latDefault = latDefault || kyrDefault || hierDefault ||  '--nodata--';
     kyrDefault = kyrDefault || latDefault;
     hierDefault = hierDefault || latDefault;
