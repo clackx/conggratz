@@ -3,6 +3,7 @@ import handler  # to avoid circular import
 from asyncio import run, sleep
 from sender import send_gratz_brief
 from mdb import maindb
+from misc import birthday_from_offset
 
 
 async def notify_notifyee():

@@ -123,7 +123,8 @@ class Mdb:
 
     def set_user(self, userid, settings):
         elogger.debug(f'set_user {userid}')
-        query = f"INSERT INTO users (userid, status, settings) VALUES ({userid}, '1', '{settings}')"
+        query = "INSERT INTO users (userid, status, settings, notitime) " + \
+                f"VALUES ({userid}, '1', '{settings}', '08:00')"
         return self.try_commit(query)
 
     def set_sets(self, userid, settings):

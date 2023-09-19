@@ -25,7 +25,6 @@ async def _init_user(userid, locale='ru', altale='en', day='04.01'):
                 'session': {'message_id': 1, 'offset': 0, 'state': 0, 'bday': day},
                 'time': {'timezone': '+3', 'notitime': '11:00'}}
     await maindb.set_user(userid, json.dumps(settings))
-    await maindb.set_notitime(userid, '08:00')
     await _set_settings(userid, settings)
     return settings
 
