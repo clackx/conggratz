@@ -1,7 +1,8 @@
 const express = require('express')
-// var cors = require('cors'); 
+// var cors = require('cors');
 const db = require('./db');
-const { formatData, languages } = require('./misc');
+const { formatObject, languages } = require('./misc');
+const { cacheEntity, getEntities } = require('./rds');
 
 const app = express()
 const port = 3030
@@ -38,14 +39,41 @@ async function getJSON({ bdate, limit, offset, lang }) {
     const params = [bdate, limit, offset]
     const wdEntitiesWRank = await db.getWDEs(params, lang)
     const wdEntities = wdEntitiesWRank.map(wde => wde[lang + 'wde'])
-    const occuObj = await db.getOccupationsObj(wdEntities)
-    const peopleObj = await db.getPeopleObj(wdEntities)
-    const flagCntryObj = await db.getFlagCountriesObj(wdEntities)
+    const ranks = wdEntitiesWRank.map(rank => rank[lang + 'rank'])
 
-    const result = formatData({
-        'wdEntities': wdEntitiesWRank,
-        occuObj, peopleObj, flagCntryObj, lang
-    })
+    if (!wdEntities.length) return {}
 
+    let result = []
+    const entitiesToRequest = []
+    const cacheResults = await getEntities(wdEntities);
+
+    for (const [index, c] of cacheResults.entries()) {
+        if (c) result.push(JSON.parse(c))
+        else entitiesToRequest.push(wdEntities[index])
+    }
+
+    if (!entitiesToRequest.length) return result
+
+    // if not all entities are cached
+    const occuObj = await db.getOccupationsObj(entitiesToRequest)
+    const peopleObj = await db.getPeopleObj(entitiesToRequest)
+    const flagCntryObj = await db.getFlagCountriesObj(entitiesToRequest)
+
+    for (const [index, c] of cacheResults.entries()) {
+        if (c) result.push(JSON.parse(c))
+        else {
+            const wdEntity = wdEntities[index]
+            const data = formatObject({
+                wdEntity,
+                pageViewRank: ranks[index],
+                occupation: occuObj[wdEntity],
+                person: peopleObj[wdEntity],
+                flagCntry: flagCntryObj[wdEntity],
+                lang
+            })
+            result.push(data)
+            cacheEntity(wdEntity, data)
+        }
+    }
     return result
 }

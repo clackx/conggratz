@@ -5,18 +5,30 @@ function formatData({ wdEntities, occuObj, peopleObj, flagCntryObj, lang }) {
     for (const wdeRankPair of wdEntities) {
         const [wdEntity, pageViewRank] = Object.values(wdeRankPair);
         person = peopleObj[wdEntity];
-        if (person)
-            result.push({
-                'wde': wdEntity,
-                'rank': pageViewRank,
-                'photo': getWCThumb(person.photo),
-                'links': parseAndNormalize(person.links),
-                'descrs': parseAndNormalize(person.descrs, capitalize = true),
-                'occupations': getTags(occuObj[wdEntity], lang),
-                'countries': getFlagsAndCountries(flagCntryObj[wdEntity])
-            });
+        if (person) {
+            const occupation = occuObj[wdEntity]
+            const flagCntry = flagCntryObj[wdEntity]
+            const data = formatObject({
+                wdEntity, pageViewRank,
+                occupation, person, flagCntry, lang
+            })
+            result.push(data)
+        }
     }
     return result;
+}
+
+
+function formatObject({ wdEntity, pageViewRank, occupation, person, flagCntry, lang }) {
+    return {
+        'wde': wdEntity,
+        'rank': pageViewRank,
+        'photo': getWCThumb(person.photo),
+        'links': parseAndNormalize(person.links),
+        'descrs': parseAndNormalize(person.descrs, capitalize = true),
+        'occupations': getTags(occupation, lang),
+        'countries': getFlagsAndCountries(flagCntry)
+    }
 }
 
 
@@ -116,7 +128,6 @@ function getFlagsAndCountries(flags) {
     }
 
     return { 'icon': getFlagEmoji(emojiFlag), fc_list, svg_flags, countries };
-
 }
 
 
@@ -155,3 +166,4 @@ function hashText(content, algo = 'md5') {
 
 
 exports.formatData = formatData;
+exports.formatObject = formatObject;
