@@ -20,15 +20,16 @@ function formatData({ wdEntities, occuObj, peopleObj, flagCntryObj, lang }) {
 
 
 function formatObject({ wdEntity, pageViewRank, occupation, person, flagCntry, lang }) {
-    return {
-        'wde': wdEntity,
-        'rank': pageViewRank,
-        'photo': getWCThumb(person.photo),
-        'links': parseAndNormalize(person.links),
-        'descrs': parseAndNormalize(person.descrs, capitalize = true),
-        'occupations': getTags(occupation, lang),
-        'countries': getFlagsAndCountries(flagCntry)
-    }
+    if (person)
+        return {
+            'wde': wdEntity,
+            'rank': pageViewRank,
+            'photo': getWCThumb(person.photo),
+            'links': parseAndNormalize(person.links),
+            'descrs': parseAndNormalize(person.descrs, capitalize = true),
+            'occupations': getTags(occupation, lang),
+            'countries': getFlagsAndCountries(flagCntry)
+        }
 }
 
 
@@ -62,13 +63,13 @@ function parseAndNormalize(dataString, capitalize = false) {
 
     if (capitalize) for (l of languages) dict[l] = capitalizeString(dict[l]);
 
-    const findDefault = ({obj, list}) => { for(key of list) if (obj[key]) return obj[key] }
+    const findDefault = ({ obj, list }) => { for (key of list) if (obj[key]) return obj[key] }
 
     let latDefault = findDefault({ obj: dict, list: latList });
     let kyrDefault = findDefault({ obj: dict, list: kyrList });
     let hierDefault = findDefault({ obj: dict, list: hierList });
 
-    latDefault = latDefault || kyrDefault || hierDefault ||  '--nodata--';
+    latDefault = latDefault || kyrDefault || hierDefault || '--nodata--';
     kyrDefault = kyrDefault || latDefault;
     hierDefault = hierDefault || latDefault;
 
