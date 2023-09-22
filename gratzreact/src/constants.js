@@ -1,5 +1,6 @@
 export const mediaURL = "https://conggratz.ru/stati/";
 export const jsonURL = "https://conggratz.ru/json";
+export const wsURL = "https://conggratz.ru/ws";
 
 export const titleL11ns = {
   'ru': 'родились',

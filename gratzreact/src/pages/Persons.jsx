@@ -1,42 +1,30 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+
 import '../styles/App.css'
 import PostList from "../components/PersonList";
 import PostForm from "../components/PersonForm";
 import PersonModal from "../components/ui/modal/PersonModal";
-import PersonService from "../API/PersonService";
 import Loader from "../components/ui/Loader/BigCoolLoader";
 import { AppContext } from "../context";
 import { useParams } from "react-router";
-import { useFetching } from "../hooks/useFetching";
 import { useObserver } from "../hooks/useObserver";
 import { getDigitsDate } from "../misc/dates";
+import { SocketContext } from "../components/SocketProvider";
 
 
-function Posts() {
+export const Persons = () => {
   const params = useParams()
-  const { langChosen, dayChosen, setDayChosen, setLoading, } = useContext(AppContext);
+  const { langChosen, dayChosen, setDayChosen, setLoading } = useContext(AppContext);
+  const { socket, socketError, pageData, totalCount } = useContext(SocketContext);
   const [persons, setPersons] = useState([])
   const [totalPages, setTotalPages] = useState(3)
-  const [page, setPage] = useState(-1)
+  const [page, setPage] = useState(0)
   const [modalVis, setModalVis] = useState(false)
   const [person, setPerson] = useState()
   const lastElement = useRef()
   const limit = 7
-  const [h2, setH2] = useState('3агру3ка...')   
-
-  const [fetchFirst, isFirstLoading, loadFirstError] = useFetching(async (day, lang, limit) => {
-    const response = await PersonService.getAll(day, lang, limit, 0);
-    setPersons([...response.data])
-    const totalCount = response.headers['x-total-count']
-    setTotalPages(Math.ceil(parseInt(totalCount) / limit));
-    setPage(0)
-  })
-
-
-  const [fetchNext, isNextLoading, loadNextError] = useFetching(async (day, lang, limit, page) => {
-    const response = await PersonService.getAll(day, lang, limit, limit * page);
-    setPersons(prev => [...prev, ...response.data])
-  })
+  const [h2, setH2] = useState('3агру3ка...')
+  const [isNextLoading, setNextLoading] = useState(true)
 
 
   useObserver(lastElement, page < totalPages, isNextLoading, () => {
@@ -45,41 +33,52 @@ function Posts() {
 
 
   useEffect(() => {
-    if (dayChosen) {
-      fetchFirst(dayChosen, langChosen, limit)
-    }
-  }, [dayChosen, langChosen]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (socket)
+      socket.emit('request', { day: dayChosen, lang: langChosen, page: 0, limit })
+    setPage(0)
+    setPersons([])
+    setLoading(true)
+    setNextLoading(true)
+  }, [dayChosen, langChosen])   // eslint-disable-line react-hooks/exhaustive-deps
 
 
   useEffect(() => {
-    if (page > 0) {
-      fetchNext(dayChosen, langChosen, limit, page)
-    }
-  }, [page])                  // eslint-disable-line react-hooks/exhaustive-deps
+    if (socket && page > 0)
+      socket.emit('request', { day: dayChosen, lang: langChosen, page, limit })
+    setNextLoading(true)
+  }, [page])                    // eslint-disable-line react-hooks/exhaustive-deps
 
 
   useEffect(() => {
     setDayChosen(getDigitsDate(params.bday, 0))
-  }, [params.bday])           // eslint-disable-line react-hooks/exhaustive-deps
-
-
-
-  useEffect(() => {
-    setLoading(isFirstLoading)
-  }, [isFirstLoading])        // eslint-disable-line react-hooks/exhaustive-deps
-
-
-  useEffect(() => {
-    if (loadNextError || loadFirstError) {
-      setH2(loadFirstError + ' / ' + loadNextError)
-    }
-  }, [loadNextError, loadFirstError])
+  }, [params.bday])             // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const showModal = (showperson) => {
     setPerson(showperson)
     setModalVis(true)
   }
+
+
+  useEffect(() => {
+    if (socketError) setH2(socketError)
+    setNextLoading(false)
+  }, [socketError])
+
+
+  useEffect(() => {
+    if (totalCount) setTotalPages(~~(totalCount / limit))
+  }, [totalCount])
+
+
+  useEffect(() => {
+    if (pageData) {
+      setPersons(prev => [...prev, ...pageData])
+      setNextLoading(false)
+      setLoading(false)
+    }
+  }, [pageData])                // eslint-disable-line react-hooks/exhaustive-deps
+
 
   return (
     <div className="App">
@@ -97,5 +96,3 @@ function Posts() {
     </div>
   );
 }
-
-export default Posts;
