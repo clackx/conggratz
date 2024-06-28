@@ -1,11 +1,12 @@
 const express = require('express')
-// var cors = require('cors');
+const cors = require('cors');
 const db = require('./db');
 const { formatObject, languages } = require('./misc');
 const { cacheEntity, getEntities } = require('./rds');
 
 const app = express()
-const port = 3030
+const port = process.env.BE_PORT || 3030
+const host = process.env.BE_HOST || '0.0.0.0'
 const http = require('http').createServer(app)
 const io = require('socket.io')(http, {
     path: "/ws/",
@@ -14,7 +15,7 @@ const io = require('socket.io')(http, {
     }
 });
 
-// app.use(cors())
+app.use(cors())
 
 app.get('/', async (_, response) => {
     response.send('nothing to see here')
@@ -64,9 +65,8 @@ io.on('connection', (socket) => {
 });
 
 
-
 http.listen(port, () =>
-    console.log(`Server listens on port ${port}.`)
+    console.log(`Server listens on ${host}:${port}.`)
 );
 
 

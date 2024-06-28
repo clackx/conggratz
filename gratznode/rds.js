@@ -1,8 +1,9 @@
 const Redis = require('ioredis');
-const redis = new Redis({
-    host: 'localhost',
-    port: 6379,
-});
+
+const host = process.env.RDS_HOST || 'localhost'
+const port = process.env.RDS_PORT || 6379
+
+const redis = new Redis({host, port});
 
 const cacheEntity = (wdEntity, data) => {
     redis.set(wdEntity, JSON.stringify(data), 'EX', 86400, 'NX');
