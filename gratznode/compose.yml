@@ -1,0 +1,32 @@
+services:
+  gratzback:
+    build: .
+    image: clackx/gratzback
+    container_name: gratzback
+    environment:
+      - PG_HOST=${PG_HOST}
+      - PG_PORT=${PG_PORT}
+      - PG_USER=${PG_USER}
+      - PG_PASS=${PG_PASS}
+      - PG_DBNAME=${PG_DBNAME}
+      - RDS_HOST=${RDS_HOST}
+      - RDS_PORT=${RDS_PORT}
+    expose:
+      - 3030
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nodeback-conggratz.rule=Host(`conggratz.ru`) && PathPrefix(`/json/`)
+      - traefik.http.services.nodeback-conggratz.loadbalancer.server.port=3030
+      - traefik.http.routers.nodeback-conggratz.entrypoints=https
+      - traefik.http.routers.nodeback-conggratz.tls=true
+      - traefik.http.routers.nodeback-conggratz.tls.certresolver=letsEncrypt
+
+      - traefik.http.routers.wss-back-conggratz.rule=Host(`ws.conggratz.ru`)
+      - traefik.tcp.services.wss-back-conggratz.loadbalancer.server.port=3030
+      - traefik.http.routers.wss-back-conggratz.entrypoints=https
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
