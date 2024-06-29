@@ -1,0 +1,22 @@
+:8180 {
+
+#    handle /json* {
+#        reverse_proxy 85.143.219.78:3030
+#    }
+
+    handle_path /static* {
+        root * /files
+        file_server browse
+    }
+
+    handle {
+        root * /srv
+        file_server browse
+    }
+
+    log {
+        format json
+        output file /var/log/caddy.log
+	}
+}
+

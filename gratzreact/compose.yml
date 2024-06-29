@@ -1,0 +1,25 @@
+services:
+  caddy-conggratz:
+    restart: always
+    image: caddy:2
+    container_name: gratzfront
+    expose:
+      - 8180
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./build:/srv
+      - ./build/static:/files
+      - ./logs:/var/log
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.caddy-conggratz.rule=Host(`conggratz.ru`) && !PathPrefix(`/stati/`) && !PathPrefix(`/json`)
+      - traefik.http.services.caddy-conggratz.loadbalancer.server.port=8180
+      - traefik.http.routers.caddy-conggratz.entrypoints=https
+      - traefik.http.routers.caddy-conggratz.tls=true
+      - traefik.http.routers.caddy-conggratz.tls.certresolver=letsEncrypt
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
